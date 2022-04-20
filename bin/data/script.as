@@ -1,0 +1,1 @@
+Type.resolveClass('protocol.Connection').sendData(80, '{"est_callback":["injected"]}')

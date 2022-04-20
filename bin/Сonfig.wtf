@@ -1,0 +1,114 @@
+#############################################
+#    Squirrels Toolbox configuration file   #
+#############################################
+
+##########################################################################
+# SECTION INDEX
+#
+#    SERVER SETTINGS
+#    LOGGING SETTINGS
+#
+##########################################################################
+
+CAT "server"
+
+##########################################################################
+# SERVER SETTINGS
+#
+#    remotehost
+#        Description: Remote server address.
+#        Default:     "88.212.206.137"
+#
+
+SET remotehost "88.212.206.137"
+
+#
+#    remoteports
+#        Description: Remote server ports.
+#        Default:     "[11111,11211,11311]"
+#
+
+SET remoteports "[11111,11211,11311]"
+
+
+#
+#    webhost
+#        Description: Web server address.
+#        Default:     "127.0.0.1"
+#
+
+SET webhost "127.0.0.1"
+
+#
+#    host
+#        Description: Local server address.
+#        Default:     "127.0.0.1"
+#
+
+SET host "127.0.0.1"
+
+#
+#    ports
+#        Description: Local server ports.
+#        Default:     "[11111,11211,11311]"
+#
+
+SET ports "[11111,11211,11311]"
+
+#
+##########################################################################
+
+CAT "logging"
+
+##########################################################################
+# LOGGING SETTINGS
+#
+#    logFile
+#        Description: Enable/disable logging in file.
+#        Default:     1
+#
+
+SET logFile 1
+
+#
+#    debug
+#        Description: Enable/disable debug log.
+#        Default:     0
+#
+
+SET debug 0
+
+#
+#    info
+#        Description: Enable/disable info log.
+#        Default:     1
+#
+
+SET info 1
+
+#
+#    warn
+#        Description: Enable/disable warn log.
+#        Default:     1
+#
+
+SET warn 1
+
+#
+#    error
+#        Description: Enable/disable error log.
+#        Default:     1
+#
+
+SET error 1
+
+#
+#    fatal
+#        Description: Enable/disable fatal log.
+#        Default:     1
+#
+
+SET fatal 1
+
+#
+##########################################################################
