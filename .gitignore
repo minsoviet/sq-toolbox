@@ -1,0 +1,2 @@
+bin/**/*.log
+bin/scripts/**/*.as
