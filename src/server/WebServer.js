@@ -11,18 +11,18 @@ const http = require('http')
 const https = require('https')
 const express = require('express')
 
-const CROSSDOMAIN_XML = fs.readFileSync('data/crossdomain.xml')
-const CLIENT_SWF = fs.readFileSync('data/client.swf')
-
 module.exports = function(options) {
+    const crossdomainXml = fs.readFileSync(options.server.dataDir + '/crossdomain.xml')
+    const clientSwf = fs.readFileSync(options.server.dataDir + '/client.swf')
+
     const app = express()
     app.get("/crossdomain.xml", (req, res) => {
         res.setHeader('Content-Type', 'text/xml')
-        res.end(CROSSDOMAIN_XML)
+        res.end(crossdomainXml)
     })
     app.get('/release/client_release*.swf', (req, res) => {
         res.setHeader('Content-Type', 'application/x-shockwave-flash')
-        res.end(CLIENT_SWF)
+        res.end(clientSwf)
     })
     app.get('*', (req, res) => {
         res.status(404).end('sq-toolbox')
