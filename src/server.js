@@ -40,7 +40,7 @@ async function main() {
 	const gameServer = createGameServer(options)
 	httpServer.listen(80, options.server.webhost, () => Logger.system(`server`, `Веб-сервер запущен на ${options.server.webhost}:80`))
 	httpsServer.listen(443, options.server.webhost, () => Logger.system(`server`, `Веб-сервер запущен на ${options.server.webhost}:443`))
-	policyServer.on('server.listening', (server) => Logger.system(`server`, `Сервер поверки запущен на ${server.address().address}:${server.address().port}`))
+	policyServer.on('server.listening', (server) => Logger.system(`server`, `Сервер политики запущен на ${server.address().address}:${server.address().port}`))
 	policyServer.listen()
 	gameServer.on('server.listening', (server) => Logger.system(`server`, `Игровой сервер запущен на ${server.address().address}:${server.address().port}`))
 	gameServer.listen()

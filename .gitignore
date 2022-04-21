@@ -1,2 +1,3 @@
 bin/**/*.log
-bin/scripts/**/*.as
+bin/server/cache/**
+bin/server/scripts/**

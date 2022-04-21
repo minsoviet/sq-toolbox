@@ -56,6 +56,30 @@ SET host "127.0.0.1"
 SET ports "[11111,11211,11311]"
 
 #
+#    dataDir
+#        Description: Data directory.
+#        Default:     "./data"
+#
+
+SET dataDir "./data"
+
+#
+#    scriptsDir
+#        Description: Scripts directory.
+#        Default:     "./scripts"
+#
+
+SET scriptsDir "./scripts"
+
+#
+#    cacheDir
+#        Description: Cache directory.
+#        Default:     "./cache"
+#
+
+SET cacheDir "./cache"
+
+#
 ##########################################################################
 
 CAT "logging"

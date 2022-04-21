@@ -22,8 +22,8 @@ class Package {
 Package.getRevisionData = function() {
 	try {
 		return {
-			revision: child_process.execSync('git rev-parse HEAD').toString('utf8').slice(0, -2),
-			date: child_process.execSync('git log -1 --date=format:"%Y-%m-%d %H:%H:%S %z0" --format="%ad"').toString('utf8').slice(0, -2)
+			revision: child_process.execSync('git rev-parse HEAD', {stdio: 'pipe'}).toString('utf8').slice(0, -2),
+			date: child_process.execSync('git log -1 --date=format:"%Y-%m-%d %H:%H:%S %z0" --format="%ad"', {stdio: 'pipe'}).toString('utf8').slice(0, -2)
 		}
 	} catch(e) {}
 	return {
