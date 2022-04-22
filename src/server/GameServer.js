@@ -400,7 +400,7 @@ module.exports = function(options) {
 				return true
 		}
 		if('Create' in dataJson) {
-			if(client.settings.ignorebadcreate && !isValidCreate(dataJson.Create)) {
+			if(client.settings.ignorebadobjects && !isValidCreate(dataJson.Create)) {
 				if(client.settings.logbadobjects) {
 					Logger.info('server', `${getPlayerMention(client, playerId)} пытался создать объект Entity ${dataJson.Create[0].toString()}`)
 				}
@@ -417,7 +417,7 @@ module.exports = function(options) {
 			}
 		}
 		if('Destroy' in dataJson) {
-			if(client.settings.ignorebaddestroy) {
+			if(client.settings.ignorebadobjects) {
 				if(!isValidDestroy(dataJson.Destroy) || client.storage.newObjects < 0) {
 					if(client.settings.logbadobjects) {
 						Logger.info('server', `${getPlayerMention(client, playerId)} пытался удалить объект ID ${dataJson.Destroy[0].toString()}`)
