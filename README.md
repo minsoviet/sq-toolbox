@@ -1,4 +1,4 @@
-# ![logo](https://sovlet.github.io/belki/media/icons/icon64.png) Squirrels Toolbox
+# <img src="https://sovlet.github.io/sq-toolbox/media/icons/icon.svg" height="64"> Squirrels Toolbox
 
 --------------
 
