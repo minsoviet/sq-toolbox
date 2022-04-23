@@ -11,8 +11,8 @@ const { PolicyServer } = require('sq-lib')
 module.exports = function(options) {
 	const policyServer = new PolicyServer({
 		port: 843,
-		allowedPorts: JSON.parse(options.server.ports),
-		host: '127.0.0.1'
+		allowedPorts: JSON.parse(options.local.ports),
+		host: options.local.host
 	})
 	return policyServer
 }

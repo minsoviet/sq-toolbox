@@ -4,8 +4,9 @@ Logger.callBacks.push(function(message) {
 	if(!x && !y) {
 		return;
 	}
-	var settings = Game.self.est.settings;
-	var playerInfo = Game.self.est.playerInfo;
+	var G = Game.self;
+	var settings = G.est.settings;
+	var playerInfo = G.est.playerInfo;
 	if(settings == null || playerInfo == null) {
 		return;
 	}
@@ -26,4 +27,4 @@ Logger.callBacks.push(function(message) {
 		ControllerHeroLocal.resetKickTimer();
 	}
 });
-Game.self.est.sendData(Game.self.est.packetId, "{\"est\":[\"injected\",1]}")
+G.est.sendData(G.est.packetId, "{\"est\":[\"injected\",1]}")

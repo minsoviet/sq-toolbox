@@ -1,6 +1,8 @@
-if(!Reflect.hasField(Game.self, "est")) {
-    Game.self.est = {
+var G=Game.self;
+if(!Reflect.hasField(G, "est")) {
+    G.est = {
         vars: {
+            G: G,
             addObject: addObject,
             addObjectVec: addObjectVec,
             getPosition: getPosition,
@@ -44,7 +46,7 @@ if(!Reflect.hasField(Game.self, "est")) {
             return;
         }
         var data = JSON.parse(message.substr(message.indexOf("]") + 2));
-        if(!Reflect.hasField(data, "dataJson") || data.playerId != Game.selfId)
+        if(!Reflect.hasField(data, "dataJson") || data.playerId != Game.self.id)
             return;
         var dataEst = data.dataJson["est"];
         if(dataEst[0] == "runScript") {
@@ -77,5 +79,5 @@ if(!Reflect.hasField(Game.self, "est")) {
             Game.self.est.playerInfo = dataEst[1];
         }
     });
-    Game.self.est.sendData(Game.self.est.packetId, "{\"est\":[\"injected\",0]}");
+    G.est.sendData(Game.self.est.packetId, "{\"est\":[\"injected\",0]}");
 }

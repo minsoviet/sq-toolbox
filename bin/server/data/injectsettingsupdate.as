@@ -1,9 +1,9 @@
-var oldSettings = Game.self.est.oldSettings;
-var settings = Game.self.est.settings;
-var playerInfo = Game.self.est.playerInfo;
+var oldSettings = G.est.oldSettings;
+var settings = G.est.settings;
+var playerInfo = G.est.playerInfo;
 
-Game.self.est.oldSettings = settings;
+G.est.oldSettings = settings;
 
 if(oldSettings == null || settings.fakemoderator != oldSettings.fakemoderator) {
-	Game.self.moderator = playerInfo.moderator || settings.fakemoderator;
+	G.moderator = playerInfo.moderator || settings.fakemoderator;
 }

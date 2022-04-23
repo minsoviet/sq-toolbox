@@ -50,13 +50,13 @@ const defaultSettings = {
 
 module.exports = function(options) {
 
-	if(!fs.existsSync(options.server.cacheDir))
-		fs.mkdirSync(options.server.cacheDir)
+	if(!fs.existsSync(options.local.cacheDir))
+		fs.mkdirSync(options.local.cacheDir)
 
-	const injectMapScript = fs.readFileSync(options.server.dataDir + '/injectmap.as', 'utf8')
-	const injectScript = fs.readFileSync(options.server.dataDir + '/inject.as', 'utf8')
-	const injectExternalScript = fs.readFileSync(options.server.dataDir + '/inject.js', 'utf8')
-	const injectSettingsUpdateScript = fs.readFileSync(options.server.dataDir + '/injectsettingsupdate.as', 'utf8')
+	const injectMapScript = fs.readFileSync(options.local.dataDir + '/injectmap.as', 'utf8')
+	const injectScript = fs.readFileSync(options.local.dataDir + '/inject.as', 'utf8')
+	const injectExternalScript = fs.readFileSync(options.local.dataDir + '/inject.js', 'utf8')
+	const injectSettingsUpdateScript = fs.readFileSync(options.local.dataDir + '/injectsettingsupdate.as', 'utf8')
 
 	function escapeAsString(str) {
 		return str.replace(/"/g, '\\"').replace(/\n/gm, '\\n').replace(/\r/gm, '\\r')
@@ -83,13 +83,13 @@ module.exports = function(options) {
 	}
 
 	function getSettings(client) {
-		if(!fs.existsSync(options.server.cacheDir + '/settings' + client.uid + '.json'))
+		if(!fs.existsSync(options.local.cacheDir + '/settings' + client.uid + '.json'))
 			return {}
-		return JSON.parse(fs.readFileSync(options.server.cacheDir + '/settings' + client.uid + '.json', 'utf8'))
+		return JSON.parse(fs.readFileSync(options.local.cacheDir + '/settings' + client.uid + '.json', 'utf8'))
 	}
 
 	function saveSettings(client) {
-		fs.writeFileSync(options.server.cacheDir + '/settings' + client.uid + '.json', JSON.stringify(client.settings), {encoding: 'utf8', 'flag': 'w+'})
+		fs.writeFileSync(options.local.cacheDir + '/settings' + client.uid + '.json', JSON.stringify(client.settings), {encoding: 'utf8', 'flag': 'w+'})
 	}
 
 	function sendSettings(client) {
@@ -736,7 +736,7 @@ module.exports = function(options) {
 	}
 
 	function handleDebugScriptCommand(client, chatType, args) {
-		let file = options.server.scriptsDir + '/' + args.shift()
+		let file = options.local.scriptsDir + '/' + args.shift()
 		if(!fs.existsSync(file))
 			return showMessage(client, 'Скрипт не найден.')
 		let script = fs.readFileSync(file, 'utf8')
@@ -866,11 +866,11 @@ module.exports = function(options) {
 
 	const clients = []
 	const gameServer = new GameServer({
-		port: JSON.parse(options.server.ports),
+		port: JSON.parse(options.local.ports),
 		host: '127.0.0.1',
 		manualOpen: true
 	})
-	gameServer.on('client.connect', (client) => handleConnect(client, JSON.parse(options.server.remoteports), options.server.remotehost))
+	gameServer.on('client.connect', (client) => handleConnect(client, JSON.parse(options.remote.ports), options.remote.host))
 	gameServer.on('client.close', handleClose)
 	gameServer.on('client.error', handleClose)
 	gameServer.on('client.timeout', handleClose)

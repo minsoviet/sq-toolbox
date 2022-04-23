@@ -5,43 +5,20 @@
 ##########################################################################
 # SECTION INDEX
 #
-#    SERVER SETTINGS
+#    LOCAL SERVER SETTINGS
+#    REMOTE SERVER SETTINGS
+#    WEB SERVER SETTINGS
 #    LOGGING SETTINGS
 #
 ##########################################################################
 
-CAT "server"
+CAT "local"
 
 ##########################################################################
-# SERVER SETTINGS
-#
-#    remotehost
-#        Description: Remote server address.
-#        Default:     "88.212.206.137"
-#
-
-SET remotehost "88.212.206.137"
-
-#
-#    remoteports
-#        Description: Remote server ports.
-#        Default:     "[11111,11211,11311]"
-#
-
-SET remoteports "[11111,11211,11311]"
-
-
-#
-#    webhost
-#        Description: Web server address.
-#        Default:     "127.0.0.1"
-#
-
-SET webhost "127.0.0.1"
-
+# LOCAL SERVER SETTINGS
 #
 #    host
-#        Description: Local server address.
+#        Description: Local server binding address.
 #        Default:     "127.0.0.1"
 #
 
@@ -78,6 +55,60 @@ SET scriptsDir "./scripts"
 #
 
 SET cacheDir "./cache"
+
+#
+##########################################################################
+
+CAT "remote"
+
+##########################################################################
+# REMOTE SERVER SETTINGS
+#
+#    host
+#        Description: Remote server binding address.
+#        Default:     "88.212.206.137"
+#
+
+SET host "88.212.206.137"
+
+#
+#    ports
+#        Description: Remote server ports.
+#        Default:     "[11111,11211,11311]"
+#
+
+SET ports "[11111,11211,11311]"
+
+#
+##########################################################################
+
+CAT "web"
+
+##########################################################################
+# WEB SERVER SETTINGS
+#
+#    host
+#        Description: Web server binding address.
+#        Default:     "127.0.0.1"
+#
+
+SET host "127.0.0.1"
+
+#
+#    port
+#        Description: Web server port.
+#        Default:     24100
+#
+
+SET port 24100
+
+#
+#    portSsl
+#        Description: Web server https port.
+#        Default:     24200
+#
+
+SET portSsl 24200
 
 #
 ##########################################################################

@@ -12,8 +12,8 @@ const https = require('https')
 const express = require('express')
 
 module.exports = function(options) {
-    const crossdomainXml = fs.readFileSync(options.server.dataDir + '/crossdomain.xml')
-    const clientSwf = fs.readFileSync(options.server.dataDir + '/client.swf')
+    const crossdomainXml = fs.readFileSync(options.local.dataDir + '/crossdomain.xml')
+    const clientSwf = fs.readFileSync(options.local.dataDir + '/client.swf')
 
     const app = express()
     app.get("/crossdomain.xml", (req, res) => {
