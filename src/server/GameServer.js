@@ -23,9 +23,9 @@ const defaultSettings = {
 	alwaysdragon: false, // видеть что вы Дракоша
 	alwayshare: false, // видеть что вы Заяц НеСудьбы
 
-	fakemoderator: true, // видеть что вы модератор
+	fakemoderator: false, // видеть что вы модератор
 	fakelevel: -1, // видеть что вы другого уровня
-	removemoderators: true, // показывать модераторов игроками
+	removemoderators: false, // показывать модераторов игроками
 
 	ignoreselfreports: true, // игнорировать жалобы на себя
 	ignorebadobjects: true, // игнорировать плохие объекты
@@ -50,7 +50,7 @@ const defaultSettings = {
 
 module.exports = function(options) {
 
-	if(!fs.existsSync(options.local.cacheDir))
+	if (!fs.existsSync(options.local.cacheDir))
 		fs.mkdirSync(options.local.cacheDir)
 
 	const injectMapScript = fs.readFileSync(options.local.dataDir + '/injectmap.as', 'utf8')
@@ -63,7 +63,7 @@ module.exports = function(options) {
 	}
 
 	function showMessage(client, message) {
-		if(client.settings.scriptoutput && client.storage.gameInjected)
+		if (client.settings.scriptoutput && client.storage.gameInjected)
 			return client.sendPacket('PacketRoundCommand', {playerId: client.uid, dataJson: {'est': ['showMessage', message]}})
 		client.sendPacket('PacketAdminMessage', {
 			message: message
@@ -83,7 +83,7 @@ module.exports = function(options) {
 	}
 
 	function getSettings(client) {
-		if(!fs.existsSync(options.local.cacheDir + '/settings' + client.uid + '.json'))
+		if (!fs.existsSync(options.local.cacheDir + '/settings' + client.uid + '.json'))
 			return {}
 		return JSON.parse(fs.readFileSync(options.local.cacheDir + '/settings' + client.uid + '.json', 'utf8'))
 	}
@@ -100,10 +100,10 @@ module.exports = function(options) {
 		switch(name) {
 			case 'fakemoderator':
 			case 'fakelevel':
-				let fakePlayer = Object.assign({}, client.player);
+				let fakePlayer = Object.assign({}, client.player)
 				fakePlayer.moderator = fakePlayer.moderator || client.settings.fakemoderator
 				fakePlayer.exp = client.settings.fakelevel != -1 ? levelToExp(client.settings.fakelevel) : fakePlayer.exp
-				if(name == 'fakelevel')
+				if (name == 'fakelevel')
 					client.sendPacket('PacketExperience', {exp: fakePlayer.exp})
 				client.sendPacket('PacketInfo', {mask: -1, data: [fakePlayer]})
 				break
@@ -117,7 +117,7 @@ module.exports = function(options) {
 	function expToLevel(exp) {
 		let levels = ConfigData.player.levels
 		for(let level in levels)
-			if(exp < levels[level].experience)
+			if (exp < levels[level].experience)
 				return level - 1
 		return levels.length - 1
 	}
@@ -128,85 +128,86 @@ module.exports = function(options) {
 	}
 
 	function getPlayerInfo(client, id) {
-		if(id === client.uid)
+		if (id === client.uid)
 			return client.player
 		return client.storage.players[id]
 	}
 
 	function getPlayerMention(client, id) {
 		let player = getPlayerInfo(client, id)
-		if(!player)
+		if (!player)
 			return 'ID ' + id
 		return (player.name || 'Без имени') + ' (ID ' + id + ')'
 	}
 
 	function isValidCreate(create) {
 		let entityId = create[0]
-		if(typeof entityId !== 'number' || entityId % 1 !== 0)
+		if (typeof entityId !== 'number' || entityId % 1 !== 0)
 			return false
 		let data = create[1]
 		let isOldStyle = Array.isArray(data[0]) && data[0].length === 2
-		if(isOldStyle) {
-			if(typeof data[0][0] !== 'number' || typeof data[0][1] !== 'number')
+		if (isOldStyle) {
+			if (typeof data[0][0] !== 'number' || typeof data[0][1] !== 'number')
 				return false
-			if(typeof data[1] !== 'number')
+			if (typeof data[1] !== 'number')
 				return false
-			if(typeof data[2] !== 'boolean')
+			if (typeof data[2] !== 'boolean')
 				return false
 			return true
 		}
-		if(!Array.isArray(data[0]))
+		if (!Array.isArray(data[0]))
 			return false
-		if(!Array.isArray(data[0][0]))
+		if (!Array.isArray(data[0][0]))
 			return false
-		if(typeof data[0][0][0] !== 'number' || typeof data[0][0][1] !== 'number')
+		if (typeof data[0][0][0] !== 'number' || typeof data[0][0][1] !== 'number')
 			return false
-		if(typeof data[0][1] !== 'number')
+		if (typeof data[0][1] !== 'number')
 			return false
-		if(typeof data[0][2] !== 'boolean')
+		if (typeof data[0][2] !== 'boolean')
 			return false
-		if(typeof data[0][3] !== 'boolean')
+		if (typeof data[0][3] !== 'boolean')
 			return false
-		if(typeof data[0][4] !== 'boolean')
+		if (typeof data[0][4] !== 'boolean')
 			return false
-		if(data[0].length < 6)
+		if (data[0].length < 6)
 			return true
-		if(!Array.isArray(data[0][5]))
+		if (!Array.isArray(data[0][5]))
 			return false
-		if(typeof data[0][5][0] !== 'number' || typeof data[0][5][1] !== 'number')
+		if (typeof data[0][5][0] !== 'number' || typeof data[0][5][1] !== 'number')
 			return false
-		if(typeof data[0][6] !== 'number')
+		if (typeof data[0][6] !== 'number')
 			return false
-		if(typeof data[0][7] !== 'string')
+		if (typeof data[0][7] !== 'string')
 			return false
-		if(data[0].length < 9)
+		if (data[0].length < 9)
 			return true
-		if(typeof data[0][8] !== 'number')
+		if (typeof data[0][8] !== 'number')
 			return false
-		if(data[0].length < 10)
+		if (data[0].length < 10)
 			return true
-		if(typeof data[0][9] !== 'boolean')
+		if (typeof data[0][9] !== 'boolean')
 			return false
 		return true
 	}
 
 	function isValidDestroy(destroy) {
 		let id = destroy[0]
-		if(typeof id !== 'number' || id % 1 !== 0)
+		if (typeof id !== 'number' || id % 1 !== 0)
 			return false
-		if(typeof destroy[1] !== 'boolean')
+		if (typeof destroy[1] !== 'boolean')
 			return false
 		return true
 	}
 
 	function handlePlayerInit(client) {
 		client.storage.players = []
+		client.storage.room = []
 		Logger.info('server', `Вы вошли в игру как ${getPlayerMention(client, client.uid)}`)
 		showMessage(client, 'Для полной активации функций нужно попасть на локацию.')
 	}
 
 	function handleLoginServerPacket(client, packet, buffer) {
-		if(!('innerId' in packet.data))
+		if (!('innerId' in packet.data))
 			return
 		client.uid = packet.data.innerId
 		let settings = getSettings(client)
@@ -216,57 +217,57 @@ module.exports = function(options) {
 
 	function handleNonSelfInfoServerPacket(client, mask, player) {
 		client.storage.players[player.uid] = Object.assign(client.storage.players[player.uid] || {}, player)
-		if(player.moderator && client.settings.removemoderators) {
+		if (player.moderator && client.settings.removemoderators) {
 			player.name = player.name + ' [М]'
 			player.moderator = 0
 		}
 	}
 
 	function handleSelfInfoServerPacket(client, mask, player) {
-		if(!client.player && mask === -1) {
+		if (!client.player && mask === -1) {
 			client.player = Object.assign({}, player)
 			handlePlayerInit(client)
 		}
-		if('moderator' in player && client.settings.fakemoderator)
+		if ('moderator' in player && client.settings.fakemoderator)
 			player.moderator = 1
-		if('exp' in player && client.settings.fakelevel !== -1)
+		if ('exp' in player && client.settings.fakelevel !== -1)
 			player.exp = levelToExp(client.settings.fakelevel)
 	}
 
 	function handleInfoServerPacket(client, packet, buffer) {
 		let { mask, data } = packet.data
 		for(let i in data) {
-			if(client.uid !== data[i].uid) {
-				if(handleNonSelfInfoServerPacket(client, mask, data[i]))
+			if (client.uid !== data[i].uid) {
+				if (handleNonSelfInfoServerPacket(client, mask, data[i]))
 					data.splice(i, 1)
 				continue
 			}
-			if(handleSelfInfoServerPacket(client, mask, data[i]))
+			if (handleSelfInfoServerPacket(client, mask, data[i]))
 				data.splice(i, 1)
 		}
 	}
 
 	function handleChatHistoryServerPacket(client, packet, buffer) {
 		let { chatType, messages } = packet.data
-		if(client.settings.ignorechatshistory.indexOf(chatType) !== -1)
+		if (client.settings.ignorechatshistory.indexOf(chatType) !== -1)
 			return true
 		for(let i in messages) {
 			let { playerId, message } = messages[i]
-			if(client.settings.sanitizechat)
+			if (client.settings.sanitizechat)
 				messages[i].message = message.replace(/</g, '&lt;')
 		}
 	}
 
 	function handleChatMessageServerPacket(client, packet, buffer) {
 		let { chatType, playerId, message } = packet.data
-		if(client.settings.ignorechats.indexOf(chatType) !== -1)
+		if (client.settings.ignorechats.indexOf(chatType) !== -1)
 			return true
-		if(client.settings.sanitizechat)
+		if (client.settings.sanitizechat)
 			packet.data.message = message.replace(/</g, '&lt;')
 	}
 
 	function handleExperienceServerPacket(client, packet, buffer) {
-		if(client.settings.fakeLevel !== -1)
+		if (client.settings.fakeLevel !== -1)
 			packet.exp = levelToExp(client.settings.fakelevel)
 		return client.settings.ignoreexperience
 	}
@@ -292,41 +293,41 @@ module.exports = function(options) {
 			case PacketServer.ROUND_WAITING:
 			case PacketServer.ROUND_STARTING:
 			case PacketServer.ROUND_RESULTS:
-				client.storage.inRound = false
+				client.storage.round = {in: false, objects: 0}
 				break
 			case PacketServer.ROUND_PLAYING:
 			case PacketServer.ROUND_START:
 			case PacketServer.ROUND_CUT:
-				client.storage.inRound = true
-				if(!client.storage.gameInjected && client.settings.gameinject) {
+				client.storage.round = {in: true, objects: 0}
+				if (!client.storage.gameInjected && client.settings.gameinject) {
 					client.defer.push(function() {
 						sendMapScript(client, true, injectMapScript)
 					})
 				}
-				client.storage.newObjects = 0
 		}
-		if(client.onRoomRound) {
-			client.onRoomRound()
-			delete client.onRoomRound
+		if (client.handlers.onRoomRound) {
+			client.handlers.onRoomRound(packet, buffer)
+			delete client.handlers.onRoomRound
 		}
 	}
 
 	function handleRoomServerPacket(client, packet, buffer) {
 		let { locationId, subLocation, players, isPrivate } = packet.data
-		client.storage.inRoom = true
-		if(client.settings.logroom) {
+		client.storage.room = [players]
+		client.storage.room.push(client.uid)
+		if (client.settings.logroom) {
 			let mentions = []
 			for(let player of players) {
 				mentions.push(getPlayerMention(client, player))
 			}
-			if(mentions.length === 0)
+			if (mentions.length === 0)
 				Logger.info('server', 'В комнате пусто')
 			else
 				Logger.info('server', 'В комнате: ' + mentions.join(', '))
 		}
-		if(client.settings.notifyroom) {
-			client.onRoomRound = function() {
-				if(players.length > 0) {
+		if (client.settings.notifyroom) {
+			client.handlers.onRoomRound = function() {
+				if (players.length > 0) {
 					for(let player of players) {
 						client.sendPacket('PacketChatMessage', {
 							chatType: 0,
@@ -347,31 +348,30 @@ module.exports = function(options) {
 
 	function handleRoomJoinServerPacket(client, packet, buffer) {
 		let { playerId } = packet.data
-		if(playerId === client.uid) {
-			client.storage.inRoom = true 
-		} else {
-			if(client.settings.logroom) {
-				Logger.info('server', `${getPlayerMention(client, playerId)} вошел в комнату`)
-			}
-			if(client.settings.notifyroom) {
-				client.sendPacket('PacketChatMessage', {
-					chatType: 0,
-					playerId: playerId,
-					message: '<span class=\'name_moderator\'>Вошел в комнату</span>'
-				})
-			}
+		if (client.storage.room.indexOf(playerId) == -1) {
+			client.storage.room.push(playerId)
+		if (client.settings.logroom) {
+			Logger.info('server', `${getPlayerMention(client, playerId)} вошел в комнату`)
+		}
+		if (client.settings.notifyroom) {
+			client.sendPacket('PacketChatMessage', {
+				chatType: 0,
+				playerId: playerId,
+				message: '<span class=\'name_moderator\'>Вошел в комнату</span>'
+			})
 		}
 	}
 
 	function handleRoomLeaveServerPacket(client, packet, buffer) {
 		let { playerId } = packet.data
-		if(playerId === client.uid) {
-			client.storage.inRoom = false
+		if (playerId === client.uid) {
+			client.storage.room = []
 		} else {
-			if(client.settings.logroom) {
+			client.storage.room.splice(client.storage.room.indexOf(playerId), 1)
+			if (client.settings.logroom) {
 				Logger.info('server', `${getPlayerMention(client, playerId)} вышел из комнаты`)
 			}
-			if(client.settings.notifyroom) {
+			if (client.settings.notifyroom) {
 				client.sendPacket('PacketChatMessage', {
 					chatType: 0,
 					playerId: playerId,
@@ -383,28 +383,28 @@ module.exports = function(options) {
 
 	function handleRoundCommandServerPacket(client, packet, buffer) {
 		let { playerId, dataJson } = packet.data
-		if(!dataJson)
+		if (!dataJson)
 			return
-		if('reportedPlayerId' in dataJson) {
-			if(client.settings.logreports) {
+		if ('reportedPlayerId' in dataJson) {
+			if (client.settings.logreports) {
 				Logger.info('server', `${getPlayerMention(client, playerId)} кинул жалобу на ${getPlayerMention(client, dataJson.reportedPlayerId)}`)
 			}
-			if(client.settings.notifyreports) {
+			if (client.settings.notifyreports) {
 				client.sendPacket('PacketChatMessage', {
 					chatType: 0,
 					playerId: playerId,
 					message: `<span class=\'color3\'>Кинул жалобу на</span> <span class=\'color1\'>${getPlayerMention(client, dataJson.reportedPlayerId)}</span>`
 				})
 			}
-			if(dataJson.reportedPlayerId === client.uid && client.settings.ignoreselfreports)
+			if (dataJson.reportedPlayerId === client.uid && client.settings.ignoreselfreports)
 				return true
 		}
-		if('Create' in dataJson) {
-			if(client.settings.ignorebadobjects && !isValidCreate(dataJson.Create)) {
-				if(client.settings.logbadobjects) {
+		if ('Create' in dataJson) {
+			if (client.settings.ignorebadobjects && !isValidCreate(dataJson.Create)) {
+				if (client.settings.logbadobjects) {
 					Logger.info('server', `${getPlayerMention(client, playerId)} пытался создать объект Entity ${dataJson.Create[0].toString()}`)
 				}
-				if(client.settings.notifyobjects) {
+				if (client.settings.notifyobjects) {
 					client.sendPacket('PacketChatMessage', {
 						chatType: 0,
 						playerId: playerId,
@@ -413,26 +413,24 @@ module.exports = function(options) {
 				}
 				return true
 			} else {
-				client.storage.newObjects++
+				client.storage.round.objects = client.storage.round.objects + client.storage.room.length
 			}
 		}
-		if('Destroy' in dataJson) {
-			if(client.settings.ignorebadobjects) {
-				if(!isValidDestroy(dataJson.Destroy) || client.storage.newObjects < 0) {
-					if(client.settings.logbadobjects) {
-						Logger.info('server', `${getPlayerMention(client, playerId)} пытался удалить объект ID ${dataJson.Destroy[0].toString()}`)
-					}
-					if(client.settings.notifyobjects) {
-						client.sendPacket('PacketChatMessage', {
-							chatType: 0,
-							playerId: playerId,
-							message: `<span class=\'color3\'>Пытался удалить объект</span> <span class=\'color1\'>ID ${dataJson.Destroy[0].toString()}</span>`
-						})
-					}
-					return true
+		if ('Destroy' in dataJson) {
+			if (client.settings.ignorebadobjects && playerId !== client.uid && (!isValidDestroy(dataJson.Destroy) || client.storage.round.objects < 0)) {
+				if (client.settings.logbadobjects) {
+					Logger.info('server', `${getPlayerMention(client, playerId)} пытался удалить объект ID ${dataJson.Destroy[0].toString()}`)
 				}
-				client.storage.newObjects--
+				if (client.settings.notifyobjects) {
+					client.sendPacket('PacketChatMessage', {
+						chatType: 0,
+						playerId: playerId,
+						message: `<span class=\'color3\'>Пытался удалить объект</span> <span class=\'color1\'>ID ${dataJson.Destroy[0].toString()}</span>`
+					})
+				}
+				return true
 			}
+			client.storage.round.objects--
 		}
 	}
 
@@ -440,57 +438,57 @@ module.exports = function(options) {
 		Logger.debug('net', 'Server packet', packet)
 		switch(packet.type) {
 			case 'PacketLogin':
-				if(handleLoginServerPacket(client, packet, buffer))
+				if (handleLoginServerPacket(client, packet, buffer))
 					return
 				break
 			case 'PacketInfo':
-				if(handleInfoServerPacket(client, packet, buffer))
+				if (handleInfoServerPacket(client, packet, buffer))
 					return
 				break
 			case 'PacketChatHistory':
-				if(handleChatHistoryServerPacket(client, packet, buffer))
+				if (handleChatHistoryServerPacket(client, packet, buffer))
 					return
 				break
 			case 'PacketChatMessage':
-				if(handleChatMessageServerPacket(client, packet, buffer))
+				if (handleChatMessageServerPacket(client, packet, buffer))
 					return
 				break
 			case 'PacketExperience':
-				if(handleExperienceServerPacket(client, packet, buffer))
+				if (handleExperienceServerPacket(client, packet, buffer))
 					return
 				break
 			case 'PacketBalance':
-				if(handleBalanceServerPacket(client, packet, buffer))
+				if (handleBalanceServerPacket(client, packet, buffer))
 					return
 				break
 			case 'PacketEnergy':
-				if(handleEnergyServerPacket(client, packet, buffer))
+				if (handleEnergyServerPacket(client, packet, buffer))
 					return
 			case 'PacketMana':
-				if(handleManaServerPacket(client, packet, buffer))
+				if (handleManaServerPacket(client, packet, buffer))
 					return
 			case 'PacketDailyQuests':
-				if(handleDailyQuestsServerPacket(client, packet, buffer))
+				if (handleDailyQuestsServerPacket(client, packet, buffer))
 					return
 				break
 			case 'PacketRoom':
-				if(handleRoomServerPacket(client, packet, buffer))
+				if (handleRoomServerPacket(client, packet, buffer))
 					return
 				break
 			case 'PacketRoomRound':
-				if(handleRoomRoundServerPacket(client, packet, buffer))
+				if (handleRoomRoundServerPacket(client, packet, buffer))
 					return
 				break
 			case 'PacketRoomJoin':
-				if(handleRoomJoinServerPacket(client, packet, buffer))
+				if (handleRoomJoinServerPacket(client, packet, buffer))
 					return
 				break
 			case 'PacketRoomLeave':
-				if(handleRoomLeaveServerPacket(client, packet, buffer))
+				if (handleRoomLeaveServerPacket(client, packet, buffer))
 					return
 				break
 			case 'PacketRoundCommand':
-				if(handleRoundCommandServerPacket(client, packet, buffer))
+				if (handleRoundCommandServerPacket(client, packet, buffer))
 					return
 		}
 		client.sendData(packet)
@@ -500,6 +498,7 @@ module.exports = function(options) {
 
 	function handleHelloClientPacket(client, packet, buffer) {
 		client.storage = {}
+		client.handlers = {}
 		client.defer = []
 	}
 
@@ -509,7 +508,7 @@ module.exports = function(options) {
 
 	function handleRoundSkillClientPacket(client, packet, buffer) {
 		let [code, activate, unk0, unk1] = packet.data
-		if(client.storage.cancelNextSkill && activate) {
+		if (client.storage.cancelNextSkill && activate) {
 			delete client.storage.cancelNextSkill
 			client.proxy.sendPacket('ROUND_SKILL', code, true, unk0, unk1)
 			client.proxy.sendPacket('ROUND_SKILL', code, false, unk0, unk1)
@@ -519,19 +518,19 @@ module.exports = function(options) {
 
 	function handleRoundCommandClientPacket(client, packet, buffer) {
 		let [data] = packet.data
-		if(!data)
+		if (!data)
 			return
-		if(client.settings.gameinject) {
-			if(!client.storage.gameInjected) {
-				if('ScriptedTimer' in data) {
+		if (client.settings.gameinject) {
+			if (!client.storage.gameInjected) {
+				if ('ScriptedTimer' in data) {
 					client.sendPacket('PacketRoundCommand', {playerId: client.uid, dataJson: {'ScriptedTimer': data['ScriptedTimer']}})
 					return true
 				}
 			}
-			if('est' in data) {
+			if ('est' in data) {
 				switch(data['est'][0]) {
 					case 'injected':
-						if(client.storage.gameInjected)
+						if (client.storage.gameInjected)
 							break
 						switch(data['est'][1]) {
 							case 0:
@@ -569,7 +568,7 @@ module.exports = function(options) {
 	}
 
 	function handleSetCommand(client, chatType, args) {
-		if(args[0] === undefined || args[0] === 'help') {
+		if (args[0] === undefined || args[0] === 'help') {
 			return showMessage(client, 'Помощь:\n'
 				+ '\n'
 				+ '.set [настройка] [значение]\n'
@@ -579,20 +578,20 @@ module.exports = function(options) {
 		}
 		let name = args.shift().toLowerCase()
 		let value = args.join(' ')
-		if(!(name in client.settings))
+		if (!(name in client.settings))
 			return showMessage(client, 'Неизвестная настройка.')
 		switch(typeof(client.settings[name])) {
 			case 'string':
 				client.settings[name] = args
 				break
 			case 'number':
-				if(value.indexOf('.') !== -1)
+				if (value.indexOf('.') !== -1)
 					client.settings[name] = parseFloat(args)
 				else
 					client.settings[name] = parseInt(args, 10)
 				break
 			case 'boolean':
-				if(value === 'true' || value === 'on' || value === '1')
+				if (value === 'true' || value === 'on' || value === '1')
 					client.settings[name] = true
 				else
 					client.settings[name] = false
@@ -610,7 +609,7 @@ module.exports = function(options) {
 
 	function handlePlayerSearchCommand(client, chatType, args) {
 		let playerId = parseInt(args[0], 10)
-		if(isNaN(playerId))
+		if (isNaN(playerId))
 			return showMessage(client, 'Неправильный синтаксис.')
 		client.sendPacket('PacketChatMessage', {
 			chatType: chatType,
@@ -639,7 +638,7 @@ module.exports = function(options) {
 	function handleClanDonateCommand(client, chatType, args) {
 		let coins = parseInt(args[0], 10)
 		let nuts = parseInt(args[1], 10)
-		if(isNaN(coins) || isNaN(nuts))
+		if (isNaN(coins) || isNaN(nuts))
 			return showMessage(client, 'Неправильный синтаксис.')
 		client.proxy.sendPacket('CLAN_DONATION', coins, nuts)
 		showMessage(client, `В клан внесено ${coins} монет ${nuts} орехов.`)
@@ -737,10 +736,10 @@ module.exports = function(options) {
 
 	function handleDebugScriptCommand(client, chatType, args) {
 		let file = options.local.scriptsDir + '/' + args.shift()
-		if(!fs.existsSync(file))
+		if (!fs.existsSync(file))
 			return showMessage(client, 'Скрипт не найден.')
 		let script = fs.readFileSync(file, 'utf8')
-		if(file.endsWith('.js'))
+		if (file.endsWith('.js'))
 			sendExternalScript(client, script)
 		else
 			sendScript(client, !file.endsWith('.lua'), script)
@@ -769,11 +768,11 @@ module.exports = function(options) {
 
 	function handleChatMessageClientPacket(client, packet, buffer) {
 		let [chatType, msg] = packet.data
-		if(!msg.startsWith('.'))
+		if (!msg.startsWith('.'))
 			return
-		if(msg === '.')
+		if (msg === '.')
 			return
-		if(!client.settings.chatcommands)
+		if (!client.settings.chatcommands)
 			return
 		let args = msg.substring(1).split(' ')
 		let cmd = args.shift()
@@ -812,19 +811,19 @@ module.exports = function(options) {
 				handleHelloClientPacket(client, packet, buffer)
 				break
 			case 'LOGIN':
-				if(handleLoginClientPacket(client, packet, buffer))
+				if (handleLoginClientPacket(client, packet, buffer))
 					return
 				break
 			case 'ROUND_SKILL':
-				if(handleRoundSkillClientPacket(client, packet, buffer))
+				if (handleRoundSkillClientPacket(client, packet, buffer))
 					return
 				break
 			case 'ROUND_COMMAND':
-				if(handleRoundCommandClientPacket(client, packet, buffer))
+				if (handleRoundCommandClientPacket(client, packet, buffer))
 					return
 				break
 			case 'CHAT_MESSAGE':
-				if(handleChatMessageClientPacket(client, packet, buffer))
+				if (handleChatMessageClientPacket(client, packet, buffer))
 					return
 		}
 		client.proxy.sendData(packet)
@@ -850,15 +849,10 @@ module.exports = function(options) {
 	}
 
 	function handleClose(client) {
-		if(client.uid)
+		if (client.uid)
 			Logger.info('server', `Вы вышли из игры как ${getPlayerMention(client, client.uid)}`)
-		for(i in clients) {
-			if(clients[i] !== client)
-				continue
-			clients.splice(i, 1)
-			break
-		}
-		if(!client.proxy)
+		clients.splice(clients.indexOf(client), 1)
+		if (!client.proxy)
 			return
 		client.proxy.removeAllListeners()
 		client.proxy.close()

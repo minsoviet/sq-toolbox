@@ -4,8 +4,7 @@ Logger.callBacks.push(function(message) {
 	if(!x && !y) {
 		return;
 	}
-	var G = Game.self;
-	var settings = G.est.settings;
+	var settings = Gs.est.settings;
 	var playerInfo = G.est.playerInfo;
 	if(settings == null || playerInfo == null) {
 		return;

@@ -1,8 +1,8 @@
-var G=Game.self;
+var Gs=Game.self;
 if(!Reflect.hasField(G, "est")) {
-    G.est = {
+    Gs.est = {
         vars: {
-            G: G,
+            Gs: Gs,
             addObject: addObject,
             addObjectVec: addObjectVec,
             getPosition: getPosition,
@@ -41,6 +41,7 @@ if(!Reflect.hasField(G, "est")) {
         addCallback: Type.resolveClass("flash.external.ExternalInterface").addCallback,
         sendData: Type.resolveClass("protocol.Connection").sendData
     };
+    Gs.est.vars.Est = Gs.est;
     Logger.callBacks.push(function(message) {
         if(message.indexOf("\"dataJson\":{\"est\"") == -1) {
             return;
@@ -79,5 +80,5 @@ if(!Reflect.hasField(G, "est")) {
             Game.self.est.playerInfo = dataEst[1];
         }
     });
-    G.est.sendData(Game.self.est.packetId, "{\"est\":[\"injected\",0]}");
+    Gs.est.sendData(Game.self.est.packetId, "{\"est\":[\"injected\",0]}");
 }
