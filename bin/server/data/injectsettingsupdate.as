@@ -1,9 +1,16 @@
-var oldSettings = G.est.oldSettings;
-var settings = G.est.settings;
-var playerInfo = G.est.playerInfo;
+var oldSettings = Est.oldSettings;
+var isFirstUpdate = oldSettings == null;
+var settings = Est.settings;
+var playerInfo = Est.playerInfo;
+Est.oldSettings = settings;
 
-G.est.oldSettings = settings;
+function isChanged(name) {
+	if(isFirstUpdate) {
+		return true;
+	}
+	return settings[name] != oldSettings[name];
+}
 
-if(oldSettings == null || settings.fakemoderator != oldSettings.fakemoderator) {
-	G.moderator = playerInfo.moderator || settings.fakemoderator;
+if(isChanged("fakemoderator")) {
+	Gs.moderator = playerInfo.moderator || settings.fakemoderator;
 }

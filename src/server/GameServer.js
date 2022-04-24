@@ -130,7 +130,7 @@ module.exports = function(options) {
 	function getPlayerInfo(client, id) {
 		if (id === client.uid)
 			return client.player
-		return client.storage.players[id]
+		return client.players[id]
 	}
 
 	function getPlayerMention(client, id) {
@@ -200,8 +200,9 @@ module.exports = function(options) {
 	}
 
 	function handlePlayerInit(client) {
-		client.storage.players = []
-		client.storage.room = []
+		client.players = []
+		client.room = []
+		client.round = {in: false, objects: 0}
 		Logger.info('server', `Вы вошли в игру как ${getPlayerMention(client, client.uid)}`)
 		showMessage(client, 'Для полной активации функций нужно попасть на локацию.')
 	}
@@ -216,7 +217,7 @@ module.exports = function(options) {
 	}
 
 	function handleNonSelfInfoServerPacket(client, mask, player) {
-		client.storage.players[player.uid] = Object.assign(client.storage.players[player.uid] || {}, player)
+		client.players[player.uid] = Object.assign(client.players[player.uid] || {}, player)
 		if (player.moderator && client.settings.removemoderators) {
 			player.name = player.name + ' [М]'
 			player.moderator = 0
@@ -293,12 +294,12 @@ module.exports = function(options) {
 			case PacketServer.ROUND_WAITING:
 			case PacketServer.ROUND_STARTING:
 			case PacketServer.ROUND_RESULTS:
-				client.storage.round = {in: false, objects: 0}
+				client.round = {in: false, objects: 0}
 				break
 			case PacketServer.ROUND_PLAYING:
 			case PacketServer.ROUND_START:
 			case PacketServer.ROUND_CUT:
-				client.storage.round = {in: true, objects: 0}
+				client.round = {in: true, objects: 0}
 				if (!client.storage.gameInjected && client.settings.gameinject) {
 					client.defer.push(function() {
 						sendMapScript(client, true, injectMapScript)
@@ -313,8 +314,8 @@ module.exports = function(options) {
 
 	function handleRoomServerPacket(client, packet, buffer) {
 		let { locationId, subLocation, players, isPrivate } = packet.data
-		client.storage.room = [players]
-		client.storage.room.push(client.uid)
+		client.room = [players]
+		client.room.push(client.uid)
 		if (client.settings.logroom) {
 			let mentions = []
 			for(let player of players) {
@@ -348,7 +349,7 @@ module.exports = function(options) {
 
 	function handleRoomJoinServerPacket(client, packet, buffer) {
 		let { playerId } = packet.data
-		client.storage.room.push(playerId)
+		client.room.push(playerId)
 		if (client.settings.logroom) {
 			Logger.info('server', `${getPlayerMention(client, playerId)} вошел в комнату`)
 		}
@@ -364,9 +365,9 @@ module.exports = function(options) {
 	function handleRoomLeaveServerPacket(client, packet, buffer) {
 		let { playerId } = packet.data
 		if (playerId === client.uid) {
-			client.storage.room = []
+			client.room = []
 		} else {
-			client.storage.room.splice(client.storage.room.indexOf(playerId), 1)
+			client.room.splice(client.room.indexOf(playerId), 1)
 			if (client.settings.logroom) {
 				Logger.info('server', `${getPlayerMention(client, playerId)} вышел из комнаты`)
 			}
@@ -412,11 +413,11 @@ module.exports = function(options) {
 				}
 				return true
 			} else {
-				client.storage.round.objects = client.storage.round.objects + client.storage.room.length
+				client.round.objects = client.round.objects + client.room.length
 			}
 		}
 		if ('Destroy' in dataJson) {
-			if (client.settings.ignorebadobjects && playerId !== client.uid && (!isValidDestroy(dataJson.Destroy) || client.storage.round.objects < 0)) {
+			if (client.settings.ignorebadobjects && playerId !== client.uid && (!isValidDestroy(dataJson.Destroy) || client.round.objects < 1)) {
 				if (client.settings.logbadobjects) {
 					Logger.info('server', `${getPlayerMention(client, playerId)} пытался удалить объект ID ${dataJson.Destroy[0].toString()}`)
 				}
@@ -429,7 +430,7 @@ module.exports = function(options) {
 				}
 				return true
 			}
-			client.storage.round.objects--
+			client.round.objects--
 		}
 	}
 

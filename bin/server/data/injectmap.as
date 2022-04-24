@@ -1,5 +1,5 @@
-var Gs=Game.self;
-if(!Reflect.hasField(G, "est")) {
+var Gs = Game.self;
+if(!Reflect.hasField(Gs, "est")) {
     Gs.est = {
         vars: {
             Gs: Gs,
@@ -80,5 +80,5 @@ if(!Reflect.hasField(G, "est")) {
             Game.self.est.playerInfo = dataEst[1];
         }
     });
-    Gs.est.sendData(Game.self.est.packetId, "{\"est\":[\"injected\",0]}");
+    Gs.est.sendData(Gs.est.packetId, "{\"est\":[\"injected\",0]}");
 }

@@ -4,26 +4,29 @@ Logger.callBacks.push(function(message) {
 	if(!x && !y) {
 		return;
 	}
-	var settings = Gs.est.settings;
-	var playerInfo = G.est.playerInfo;
+	var Gs = Game.self;
+	var Est = Gs.est;
+	var settings = Est.settings;
+	var playerInfo = Est.playerInfo;
 	if(settings == null || playerInfo == null) {
 		return;
 	}
+	var Hs = Hero.self;
 	if(settings.alwaysimmortal) {
-		Hero.self.immortal = true;
+		Hs.immortal = true;
 	}
 	if(settings.alwaysshaman) {
-		Hero.self.shaman = true;
+		Hs.shaman = true;
 	}
 	if(settings.alwaysdragon) {
-		Hero.self.dragon = true;
+		Hs.dragon = true;
 	}
 	if(settings.alwayshare) {
-		Hero.self.hare = true;
+		Hs.hare = true;
 	}
 	var ControllerHeroLocal = Type.resolveClass("controllers.ControllerHeroLocal");
 	if(settings.disablekicktimer) {
 		ControllerHeroLocal.resetKickTimer();
 	}
 });
-G.est.sendData(G.est.packetId, "{\"est\":[\"injected\",1]}")
+Est.sendData(Est.packetId, "{\"est\":[\"injected\",1]}")
