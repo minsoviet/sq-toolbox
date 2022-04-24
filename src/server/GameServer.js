@@ -348,8 +348,7 @@ module.exports = function(options) {
 
 	function handleRoomJoinServerPacket(client, packet, buffer) {
 		let { playerId } = packet.data
-		if (client.storage.room.indexOf(playerId) == -1) {
-			client.storage.room.push(playerId)
+		client.storage.room.push(playerId)
 		if (client.settings.logroom) {
 			Logger.info('server', `${getPlayerMention(client, playerId)} вошел в комнату`)
 		}
