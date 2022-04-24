@@ -3,34 +3,13 @@ if(!Reflect.hasField(Gs, "est")) {
     Gs.est = {
         vars: {
             Gs: Gs,
-            addObject: addObject,
-            addObjectVec: addObjectVec,
-            getPosition: getPosition,
-            setPosition: setPosition,
-            setPositionVec: setPositionVec,
-            getObject: getObject,
-            getObjectId: getObjectId,
-            getObjectTypeName: getObjectTypeName,
-            getAngle: getAngle,
-            setAngle: setAngle,
             showMessage: showMessage,
-            allowPerk: allowPerk,
-            build: build,
             vector: vector,
-            createSquirrel: createSquirrel,
-            createShaman: createShaman,
-            getSquirrel: getSquirrel,
-            killSquirrel: killSquirrel,
-            addHintArrow: addHintArrow,
-            removeHintArrow: removeHintArrow,
-            dispatch: dispatch,
             P2M: P2M,
             PI: PI,
             R2D: R2D,
             D2R: D2R,
-            b2Vec2: b2Vec2,
-            self: self,
-            Analytics: Analytics
+            b2Vec2: b2Vec2
         },
         oldSettings: null,
         settings: null,
@@ -82,3 +61,4 @@ if(!Reflect.hasField(Gs, "est")) {
     });
     Gs.est.sendData(Gs.est.packetId, "{\"est\":[\"injected\",0]}");
 }
+self.dispose();
