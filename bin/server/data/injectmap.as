@@ -14,6 +14,7 @@ if(!Reflect.hasField(Gs, "est")) {
         oldSettings: null,
         settings: null,
         playerInfo: null,
+        flash: Type.resolveClass("flash.Lib"),
         packetId: Type.resolveClass("protocol.PacketClient").ROUND_COMMAND,
         executeHaXeScript: Type.resolveClass("hscript.HScript").ExecuteHaXeScript,
         call: Type.resolveClass("flash.external.ExternalInterface").call,
