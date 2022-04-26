@@ -22,10 +22,20 @@ module.exports = function(options) {
     })
     app.get('/release/client_release*.swf', (req, res) => {
         res.setHeader('Content-Type', 'application/x-shockwave-flash')
+        res.setHeader('Cache-Control', 'no-cache')
         res.end(clientSwf)
     })
+    app.get('/page.html', (req, res) => {
+        res.setHeader('Content-Type', 'text/html; charset=utf-8')
+        res.setHeader('Cache-Control', 'no-cache')
+        try {
+            res.end(atob(req.query['__est_html'].replace(/\-/g, '+').replace(/\_/g, '/')))
+        } catch(e) {
+            res.status(500)
+        }
+    })
     app.get('*', (req, res) => {
-        res.status(404).end('sq-toolbox')
+        res.status(404)
     })
 
     return {

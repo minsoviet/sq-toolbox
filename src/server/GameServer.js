@@ -64,10 +64,10 @@ module.exports = function(options) {
     if (!fs.existsSync(options.local.cacheDir))
         fs.mkdirSync(options.local.cacheDir)
 
-    const injectMapScript = fs.readFileSync(options.local.dataDir + '/injectmap.as', 'utf8')
-    const injectScript = fs.readFileSync(options.local.dataDir + '/inject.as', 'utf8')
+    const injectMapScript = fs.readFileSync(options.local.dataDir + '/injectmap.hx', 'utf8')
+    const injectScript = fs.readFileSync(options.local.dataDir + '/inject.hx', 'utf8')
     const injectExternalScript = fs.readFileSync(options.local.dataDir + '/inject.js', 'utf8')
-    const injectSettingsUpdateScript = fs.readFileSync(options.local.dataDir + '/injectsettingsupdate.as', 'utf8')
+    const injectSettingsUpdateScript = fs.readFileSync(options.local.dataDir + '/injectsettingsupdate.hx', 'utf8')
 
     function getTime() {
         return Date.now() / 1000 | 0
@@ -1001,7 +1001,7 @@ module.exports = function(options) {
     function handleDebugScriptCommand(client, chatType, args) {
         let file = options.local.scriptsDir + '/' + args.shift()
         if (!client.storage.gameInjected)
-            return showMessage(client, 'Не внедрен в игру.')
+            return showMessage(client, 'Не удалось запустить скрипт.')
         if (!fs.existsSync(file))
             return showMessage(client, 'Скрипт не найден.')
         let script = fs.readFileSync(file, 'utf8')

@@ -44,7 +44,11 @@ if(!Reflect.hasField(Gs, "est")) {
             try {
                 Game.self.est.call(dataEst[1]);
             } catch(e:Dynamic) {
-                Game.self.est.vars.showMessage("sq-toolbox", e);
+                if (e == "SecurityError: Error #2060") {
+                    Game.self.est.vars.showMessage("sq-toolbox", "Не удалось запустить скрипт.");
+                } else {
+                    Game.self.est.vars.showMessage("sq-toolbox", e);
+                }
             };
             return;
         }
