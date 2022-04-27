@@ -894,7 +894,7 @@ module.exports = function(options) {
                 'Доступные настройки:\n' +
                 Object.keys(defaultSettings).join(', '))
         }
-        let name = args.shift().toLowerCase()
+        let name = args.shift()
         let value = args.join(' ')
         if (!(name in client.settings))
             return showMessage(client, 'Неизвестная настройка.')
