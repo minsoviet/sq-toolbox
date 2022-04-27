@@ -11,24 +11,47 @@ if(!Reflect.hasField(Gs, "est")) {
             D2R: D2R,
             b2Vec2: b2Vec2
         },
-        oldSettings: null,
+        loggerHandlers: [],
+        externalHandlers: {},
         settings: null,
         playerInfo: null,
-        flash: Type.resolveClass("flash.Lib"),
+        innerData: {},
         packetId: Type.resolveClass("protocol.PacketClient").ROUND_COMMAND,
         executeHaXeScript: Type.resolveClass("hscript.HScript").ExecuteHaXeScript,
         call: Type.resolveClass("flash.external.ExternalInterface").call,
         addCallback: Type.resolveClass("flash.external.ExternalInterface").addCallback,
-        sendData: Type.resolveClass("protocol.Connection").sendData
+        sendData: Type.resolveClass("protocol.Connection").sendData,
+        addLoggerHandler: function(func) { return Game.self.est.loggerHandlers.push(func); },
+        addExternalHandler: function(prefix, func) { if(!Reflect.hasField(Game.self.est.externalHandlers, prefix)) { Game.self.est.externalHandlers[prefix] = []; } return Game.self.est.externalHandlers[prefix].push(func); }
     };
+    Gs.est.addCallback("__est_sendData", function(prefix, data) {
+        if(!Reflect.hasField(Game.self.est.externalHandlers, prefix)) {
+            return;
+        }
+        var i = 0;
+        var r;
+        while(i < Game.self.est.externalHandlers[prefix].length) {
+            r = Game.self.est.externalHandlers[prefix][i](prefix, data);
+            i++;
+        }
+        return r;
+    });
     Gs.est.vars.Est = Gs.est;
     Logger.callBacks.push(function(message) {
         if(message.indexOf("\"dataJson\":{\"est\"") == -1) {
+            var i = 0;
+            while(i < Game.self.est.loggerHandlers.length) {
+                if(Game.self.est.loggerHandlers[i](message)) {
+                    return;
+                }
+                i++;
+            }
             return;
         }
         var data = JSON.parse(message.substr(message.indexOf("]") + 2));
-        if(!Reflect.hasField(data, "dataJson") || data.playerId != Game.self.id)
+        if(!Reflect.hasField(data, "dataJson") || data.playerId != Game.self.id) {
             return;
+        }
         var dataEst = data.dataJson["est"];
         if(dataEst[0] == "runScript") {
             if(dataEst[1]) {
@@ -42,7 +65,7 @@ if(!Reflect.hasField(Gs, "est")) {
         }
         if(dataEst[0] == "runExternalScript") {
             try {
-                Game.self.est.call(dataEst[1]);
+                Game.self.est.call("eval", dataEst[1]);
             } catch(e:Dynamic) {
                 if (e == "SecurityError: Error #2060") {
                     Game.self.est.vars.showMessage("sq-toolbox", "Не удалось запустить скрипт.");
@@ -62,8 +85,12 @@ if(!Reflect.hasField(Gs, "est")) {
         }
         if(dataEst[0] == "setPlayerInfo") {
             Game.self.est.playerInfo = dataEst[1];
+            return;
+        }
+        if(dataEst[0] == "setInnerData") {
+            Game.self.est.innerData[dataEst[1]] = dataEst[2];
         }
     });
     Gs.est.sendData(Gs.est.packetId, "{\"est\":[\"injected\",0]}");
 }
-self.dispose();
+self.dispose()

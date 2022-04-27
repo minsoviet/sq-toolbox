@@ -1,4 +1,4 @@
-Logger.callBacks.push(function(message) {
+Est.addLoggerHandler(function(message) {
 	var x = message.indexOf("Received server packet [object PacketRound") != -1;
 	var y = message.indexOf("Sending packet with type") != -1 && message.indexOf("ROUND_") != -1;
 	if(!x && !y) {
@@ -28,5 +28,6 @@ Logger.callBacks.push(function(message) {
 	if(settings.disablekicktimer) {
 		ControllerHeroLocal.resetKickTimer();
 	}
+	return true;
 });
 Est.sendData(Est.packetId, "{\"est\":[\"injected\",1]}")

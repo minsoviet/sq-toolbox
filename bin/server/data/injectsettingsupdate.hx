@@ -1,5 +1,8 @@
-var oldSettings = Est.oldSettings;
-var isFirstUpdate = oldSettings == null;
+var oldSettings;
+var isFirstUpdate = !Reflect.hasField(Est, "oldSettings");
+if(!isFirstUpdate) {
+	oldSettings = Est.oldSettings;
+}
 var settings = Est.settings;
 var playerInfo = Est.playerInfo;
 Est.oldSettings = settings;

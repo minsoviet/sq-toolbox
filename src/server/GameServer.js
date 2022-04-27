@@ -21,42 +21,85 @@ const {
 } = ClientData
 
 const defaultSettings = {
-    gameinject: true, // внедрять сторонний код в клиент
-    chatcommands: true, // включить чат-команды
-    scriptoutput: true, // вывод через скрипт
+    gameInject: true,
+    chatCommands: true,
+    scriptOutput: true,
 
-    sanitizechat: true, // экранировать HTML-код в чате
-    vipfuncs: false, // включить функции статуса VIP
-    disablekicktimer: false, // отключить вылет за неактивность
+    sanitizeChat: true,
+    disableKickTimer: false,
 
-    alwaysimmortal: false, // полное бессмертие
-    alwaysshaman: false, // видеть что вы шаман
-    alwaysdragon: false, // видеть что вы Дракоша
-    alwayshare: false, // видеть что вы Заяц НеСудьбы
+    alwaysImmortal: false,
+    alwaysShaman: false,
+    alwaysDragon: false,
+    alwaysHare: false,
 
-    fakemoderator: false, // видеть что вы модератор
-    fakelevel: -1, // видеть что вы другого уровня
-    removemoderators: false, // показывать модераторов игроками
+    fakeModerator: false,
+    fakeVIP: false,
+    fakeLevel: -1,
+    noModerators: false,
 
-    ignoreselfreports: true, // игнорировать жалобы на себя
-    ignorebadobjects: true, // игнорировать плохие объекты
+    ignoreSelfReports: true,
+    ignoreBadObjects: true,
 
-    ignorechats: [], // игнорировать чаты
-    ignorechatshistory: [], // игнорировать историю чатов
+    ignoreRoomChat: false,
+    ignoreClanChat: false,
+    ignoreCommonChat: false,
+    ignoreNewbieChat: false,
 
-    ignoreexperience: false, // игнорировать обновления опыта
-    ignorebalance: false, // игнорировать обновления баланса
-    ignoreenergy: false, // игнорировать обновления энергии
-    ignoremana: false, // игнорировать обновления маны
-    ignoredailyquests: false, // игнорировать обновления заданий
+    ignoreExperience: false,
+    ignoreBalance: false,
+    ignoreEnergy: false,
+    ignoreMana: false,
+    ignoreDailyQuests: false,
 
-    notifyroom: true, // уведомлять о событиях в комнате
-    notifyreports: false, // уведомлять о жалобах
-    notifyobjects: false, // уведомлять об объектах
+    notifyRoom: true,
+    notifyReports: false,
+    notifyObjects: false,
 
-    logroom: true, // логировать события в комнате
-    logreports: true, // логировать все жалобы
-    logbadobjects: true // логировать плохие объекты
+    logRoom: true,
+    logReports: true,
+    logBadObjects: true
+}
+
+const settingsData = {
+	gameInject: 'Внедр. в игру',
+    chatCommands: 'Команды чата',
+    scriptOutput: 'Вывод через скрипт',
+
+    sanitizeChat: 'Убир. HTML из чата',
+    disableKickTimer: 'Откл. \"ленивую белку\"',
+
+    alwaysImmortal: 'Всегда бессмертен',
+    alwaysShaman: 'Всегда шаман',
+    alwaysDragon: 'Всегда Дракоша',
+    alwaysHare: 'Всегда Заяц НеСудьбы',
+
+    fakeModerator: 'Виз. модератор',
+    fakeVIP: 'Виз. VIP',
+    fakeLevel: 'Виз. уровень',
+    noModerators: 'Скрывать модерки',
+
+    ignoreSelfReports: 'Игн. жалобы на игрока',
+    ignoreBadObjects: 'Игн. \"плохие\" объекты',
+
+    ignoreRoomChat: 'Игн. игровой чат',
+    ignoreClanChat: 'Игн. клановый чат',
+    ignoreCommonChat: 'Игн. VIP чат',
+    ignoreNewbieChat: 'Игн. нов. чат',
+
+    ignoreExperience: 'Игн. обн. опыта',
+    ignoreBalance: 'Игн. обн. баланса',
+    ignoreEnergy: 'Игн. обн. энергии',
+    ignoreMana: 'Игн. обн. маны',
+    ignoreDailyQuests: 'Игн. обн. заданий',
+
+    notifyRoom: 'Увед. о комнате',
+    notifyReports: 'Увед. о жалобах',
+    notifyObjects: 'Увед. об объектах',
+
+    logRoom: 'Лог. комнату',
+    logReports: 'Лог. жалобы',
+    logBadObjects: 'Лог. объекты',
 }
 
 module.exports = function(options) {
@@ -74,7 +117,7 @@ module.exports = function(options) {
     }
 
     function showMessage(client, message) {
-        if (client.settings.scriptoutput && client.storage.gameInjected)
+        if (client.settings.scriptOutput && client.storage.gameInjected)
             client.sendPacket('PacketRoundCommand', {
                 playerId: client.uid,
                 dataJson: {
@@ -163,7 +206,7 @@ module.exports = function(options) {
     function updateSetting(client, name, value) {
         let player = client.player
         switch (name) {
-            case 'vipfuncs':
+            case 'fakeVIP':
                 if (!value)
                     client.sendPacket('PacketExpirations', {
                         items: [client.storage.orig_vip]
@@ -177,7 +220,7 @@ module.exports = function(options) {
                         }]
                     })
                 break
-            case 'fakemoderator':
+            case 'fakeModerator':
                 let moderator = player.moderator || value
                 client.sendPacket('PacketInfo', {
                     data: [{
@@ -186,7 +229,7 @@ module.exports = function(options) {
                     }]
                 })
                 break
-            case 'fakelevel':
+            case 'fakeLevel':
                 let exp = player.exp
                 if (value !== -1)
                     exp = levelToExp(value)
@@ -207,6 +250,15 @@ module.exports = function(options) {
             playerId: client.uid,
             dataJson: {
                 'est': ['setPlayerInfo', client.player]
+            }
+        })
+    }
+
+    function sendInnerData(client, key, data) {
+        client.sendPacket('PacketRoundCommand', {
+            playerId: client.uid,
+            dataJson: {
+                'est': ['setInnerData', key, data]
             }
         })
     }
@@ -321,7 +373,7 @@ module.exports = function(options) {
     function handleNonSelfInfoServerPacket(client, mask, player) {
         client.players[player.uid] = Object.assign(client.players[player.uid] || {}, player)
         let fullPlayer = client.players[player.uid]
-        if (client.settings.removemoderators && 'moderator' in player)
+        if (client.settings.noModerators && 'moderator' in player)
             player.moderator = 0
         return false
     }
@@ -336,10 +388,10 @@ module.exports = function(options) {
             if (client.storage.gameInjected)
                 sendPlayerInfo(client)
         }
-        if (client.settings.fakemoderator && 'moderator' in player)
+        if (client.settings.fakeModerator && 'moderator' in player)
             player.moderator = 1
-        if (client.settings.fakelevel !== -1 && 'exp' in player)
-            player.exp = levelToExp(client.settings.fakelevel)
+        if (client.settings.fakeLevel !== -1 && 'exp' in player)
+            player.exp = levelToExp(client.settings.fakeLevel)
         return false
     }
 
@@ -365,14 +417,18 @@ module.exports = function(options) {
             chatType,
             messages
         } = packet.data
-        if (client.settings.ignorechatshistory.indexOf(chatType) !== -1)
-            return true
+        if (client.settings.ignoreRoomChat && chatType == 0 ||
+		    client.settings.ignoreClanChat && chatType == 1 ||
+		    client.settings.ignoreCommonChat && chatType == 2 ||
+		    client.settings.ignoreNewbieChat && chatType == 3
+		)
+		    return true
         for (let i in messages) {
             let {
                 playerId,
                 message
             } = messages[i]
-            if (client.settings.sanitizechat)
+            if (client.settings.sanitizeChat)
                 messages[i].message = message.replace(/</g, '&lt;')
         }
         return false
@@ -384,33 +440,37 @@ module.exports = function(options) {
             playerId,
             message
         } = packet.data
-        if (client.settings.ignorechats.indexOf(chatType) !== -1)
-            return true
-        if (client.settings.sanitizechat)
+        if (client.settings.ignoreRoomChat && chatType == 0 ||
+		    client.settings.ignoreClanChat && chatType == 1 ||
+		    client.settings.ignoreCommonChat && chatType == 2 ||
+		    client.settings.ignoreNewbieChat && chatType == 3
+		)
+		    return true
+        if (client.settings.sanitizeChat)
             packet.data.message = message.replace(/</g, '&lt;')
         return false
     }
 
     function handleExperienceServerPacket(client, packet, buffer) {
         if (client.settings.fakeLevel !== -1)
-            packet.exp = levelToExp(client.settings.fakelevel)
-        return client.settings.ignoreexperience
+            packet.exp = levelToExp(client.settings.fakeLevel)
+        return client.settings.ignoreExperience
     }
 
     function handleBalanceServerPacket(client, packet, buffer) {
-        return client.settings.ignorebalance
+        return client.settings.ignoreBalance
     }
 
     function handleEnergyServerPacket(client, packet, buffer) {
-        return client.settings.ignoreenergy
+        return client.settings.ignoreEnergy
     }
 
     function handleManaServerPacket(client, packet, buffer) {
-        return client.settings.ignoremana
+        return client.settings.ignoreMana
     }
 
     function handleDailyQuestsServerPacket(client, packet, buffer) {
-        return client.settings.ignoredailyquests
+        return client.settings.ignoreDailyQuests
     }
 
     function handleExpirationsServerPacket(client, packet, buffer) {
@@ -418,7 +478,7 @@ module.exports = function(options) {
             items
         } = packet.data
         let player = client.player
-        if (client.settings.vipfuncs) {
+        if (client.settings.fakeVIP) {
             let added = false
             for (let item of items) {
                 if (item.type !== ExpirationsManager.VIP)
@@ -488,7 +548,7 @@ module.exports = function(options) {
                     ignoreSelfCreates: 0,
                     ignoreSelfDestroys: 0
                 }
-                if (client.settings.gameinject && !client.storage.gameInjected) {
+                if (client.settings.gameInject && !client.storage.gameInjected) {
                     client.defer.push(function() {
                         createMapTimer(client, true, injectMapScript)
                         createMapSensor(client, true, injectMapScript)
@@ -514,7 +574,7 @@ module.exports = function(options) {
         	in: false,
         	players: [client.uid]
         }
-        if (client.settings.logroom) {
+        if (client.settings.logRoom) {
             let mentions = []
             for (let player of players) {
                 mentions.push(getPlayerMention(client, player))
@@ -525,7 +585,7 @@ module.exports = function(options) {
             else
                 Logger.info('server', 'В комнате: ' + mentions.join(', '))
         }
-        if (client.settings.notifyroom) {
+        if (client.settings.notifyRoom) {
             client.handlers.onRoomRound = function() {
                 if (players.length > 0) {
                     for (let player of players) {
@@ -552,10 +612,10 @@ module.exports = function(options) {
             playerId
         } = packet.data
         client.room.players.push(playerId)
-        if (client.settings.logroom) {
+        if (client.settings.logRoom) {
             Logger.info('server', `${getPlayerMention(client, playerId)} вошел в комнату`)
         }
-        if (client.settings.notifyroom) {
+        if (client.settings.notifyRoom) {
             client.sendPacket('PacketChatMessage', {
                 chatType: 0,
                 playerId: playerId,
@@ -576,10 +636,10 @@ module.exports = function(options) {
             }
         } else {
             client.room.players.splice(client.room.players.indexOf(playerId), 1)
-            if (client.settings.logroom) {
+            if (client.settings.logRoom) {
                 Logger.info('server', `${getPlayerMention(client, playerId)} вышел из комнаты`)
             }
-            if (client.settings.notifyroom) {
+            if (client.settings.notifyRoom) {
                 client.sendPacket('PacketChatMessage', {
                     chatType: 0,
                     playerId: playerId,
@@ -600,28 +660,28 @@ module.exports = function(options) {
         if ('reportedPlayerId' in dataJson) {
             if (playerId === client.uid)
                 return false
-            if (client.settings.logreports) {
+            if (client.settings.logReports) {
                 Logger.info('server', `${getPlayerMention(client, playerId)} кинул жалобу на ${getPlayerMention(client, dataJson.reportedPlayerId)}`)
             }
-            if (client.settings.notifyreports) {
+            if (client.settings.notifyReports) {
                 client.sendPacket('PacketChatMessage', {
                     chatType: 0,
                     playerId: playerId,
                     message: `<span class=\'color3\'>Кинул жалобу на</span> <span class=\'color1\'>${getPlayerMention(client, dataJson.reportedPlayerId)}</span>`
                 })
             }
-            if (dataJson.reportedPlayerId === client.uid && client.settings.ignoreselfreports)
+            if (dataJson.reportedPlayerId === client.uid && client.settings.ignoreSelfReports)
                 return true
         }
         if ('Create' in dataJson) {
-            if (client.settings.ignorebadobjects && !isValidCreate(dataJson.Create)) {
+            if (client.settings.ignoreBadObjects && !isValidCreate(dataJson.Create)) {
                 if (playerId === client.uid && client.round.ignoreSelfCreates) {
                 	client.round.ignoreSelfCreates--
                     return true
                 }
-                if (client.settings.logbadobjects)
+                if (client.settings.logBadObjects)
                     Logger.info('server', `${getPlayerMention(client, playerId)} пытался создать объект Entity ${dataJson.Create[0].toString()}`)
-                if (client.settings.notifyobjects) {
+                if (client.settings.notifyObjects) {
                     client.sendPacket('PacketChatMessage', {
                         chatType: 0,
                         playerId: playerId,
@@ -635,15 +695,15 @@ module.exports = function(options) {
             }
         }
         if ('Destroy' in dataJson) {
-            if (client.settings.ignorebadobjects && (!isValidDestroy(dataJson.Destroy) || !client.round.created[playerId])) {
+            if (client.settings.ignoreBadObjects && (!isValidDestroy(dataJson.Destroy) || !client.round.created[playerId])) {
                 if (playerId === client.uid && client.round.ignoreSelfDestroys) {
                 	client.round.ignoreSelfDestroys--
                     return true
                 }
-                if (client.settings.logbadobjects) {
+                if (client.settings.logBadObjects) {
                     Logger.info('server', `${getPlayerMention(client, playerId)} пытался удалить объект ID ${dataJson.Destroy[0].toString()}`)
                 }
-                if (client.settings.notifyobjects) {
+                if (client.settings.notifyObjects) {
                     client.sendPacket('PacketChatMessage', {
                         chatType: 0,
                         playerId: playerId,
@@ -775,7 +835,7 @@ module.exports = function(options) {
 
     function handleRoundCommandClientPacket(client, packet, buffer) {
         let [data] = packet.data
-        if (client.settings.gameinject && !client.storage.gameInjected) {
+        if (client.settings.gameInject && !client.storage.gameInjected) {
             if ('ScriptedTimer' in data || 'Sensor' in data) {
                 client.sendPacket('PacketRoundCommand', {
                     playerId: client.uid,
@@ -796,6 +856,7 @@ module.exports = function(options) {
                                 client.storage.gameInjected = true
                                 sendSettings(client)
                                 sendPlayerInfo(client)
+                                sendInnerData(client, 'settingsData', settingsData)
                                 runExternalScript(client, injectExternalScript)
                                 runScript(client, 1, injectSettingsUpdateScript)
                                 showMessage(client, 'Успешное внедрение в игру, все функции активны.')
@@ -1038,7 +1099,7 @@ module.exports = function(options) {
             return false
         if (msg === '.')
             return false
-        if (!client.settings.chatcommands)
+        if (!client.settings.chatCommands)
             return false
         let args = msg.substring(1).split(' ')
         let cmd = args.shift()
