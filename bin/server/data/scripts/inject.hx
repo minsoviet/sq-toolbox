@@ -14,8 +14,9 @@ if(!Reflect.hasField(Gs, "est")) {
         loggerHandlers: [],
         externalHandlers: {},
         settings: null,
+        oldSettings: null,
         playerInfo: null,
-        innerData: {},
+        constants: null,
         packetId: Type.resolveClass("protocol.PacketClient").ROUND_COMMAND,
         executeHaXeScript: Type.resolveClass("hscript.HScript").ExecuteHaXeScript,
         call: Type.resolveClass("flash.external.ExternalInterface").call,
@@ -87,10 +88,9 @@ if(!Reflect.hasField(Gs, "est")) {
             Game.self.est.playerInfo = dataEst[1];
             return;
         }
-        if(dataEst[0] == "setInnerData") {
-            Game.self.est.innerData[dataEst[1]] = dataEst[2];
+        if(dataEst[0] == "setConstants") {
+            Game.self.est.constants = dataEst[1];
         }
     });
-    Gs.est.sendData(Gs.est.packetId, "{\"est\":[\"injected\",0]}");
-}
-self.dispose()
+    Gs.est.sendData(Gs.est.packetId, "{\"est\":[\"status\",0]}");
+};

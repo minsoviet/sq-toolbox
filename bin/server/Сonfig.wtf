@@ -131,7 +131,7 @@ SET logFile 1
 #        Default:     0
 #
 
-SET debug 0
+SET debug 1
 
 #
 #    info
