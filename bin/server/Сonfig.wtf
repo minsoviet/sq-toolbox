@@ -126,14 +126,6 @@ CAT "logging"
 SET logFile 1
 
 #
-#    debug
-#        Description: Enable/disable debug log.
-#        Default:     0
-#
-
-SET debug 1
-
-#
 #    info
 #        Description: Enable/disable info log.
 #        Default:     1
@@ -164,6 +156,14 @@ SET error 1
 #
 
 SET fatal 1
+
+#
+#    debug
+#        Description: Enable/disable debug log.
+#        Default:     0
+#
+
+SET debug 0
 
 #
 ##########################################################################

@@ -3,35 +3,38 @@ var playerInfo = Est.playerInfo;
 
 var oldSettings = Est.oldSettings;
 var isFirstRun = oldSettings == null;
-function isChanged(name, ignoreFirstRun, except) {
-	if(isFirstRun && (!ignoreFirstRun || except == settings[name])) {
-		return false;
+function isChanged(name, except) {
+	if(isFirstRun) {
+		if(except == settings[name]) {
+			return false;
+		}
+		return true;
 	}
 	return settings[name] != oldSettings[name];
 }
 
-if(isChanged("fakeModerator")) {
+if(isChanged("fakeModerator", null)) {
 	Gs.moderator = playerInfo.moderator || settings.fakeModerator;
 }
 
 var Hs = Hero.self;
 if(Hs != null) {
-	if(isChanged("alwaysImmortal", true, false)) {
+	if(isChanged("alwaysImmortal", false)) {
 		Hs.immortal = settings.alwaysImmortal;
 	}
-	if(isChanged("alwaysShaman", true, false)) {
+	if(isChanged("alwaysShaman", false)) {
 		Hs.shaman = settings.alwaysShaman;
 	}
-	if(isChanged("alwaysDragon", true, false)) {
+	if(isChanged("alwaysDragon", false)) {
 		Hs.isDragon = settings.alwaysDragon;
 	}
-	if(isChanged("alwaysHare", true, false)) {
+	if(isChanged("alwaysHare", false)) {
 		Hs.isHare = settings.alwaysHare;
 	}
-	if(isChanged("ghostMode")) {
+	if(isChanged("ghostMode", null)) {
 		Hs.ghost = settings.ghostMode;
 	}
-	if(isChanged("infiniteJumps")) {
+	if(isChanged("infiniteJumps", null)) {
 		if(settings.infiniteJumps) {
 			while(Hs.maxInAirJumps < 1000) {
 				Hs.maxInAirJumps++;
