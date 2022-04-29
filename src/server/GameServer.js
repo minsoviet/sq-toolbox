@@ -194,16 +194,16 @@ module.exports = function(options) {
 				break
 			case 'autoCrash':
 				if (value) {
-					client.storage.autoCrashInterval = setInterval(function() {
+					client.autoCrashInterval = setInterval(function() {
 						if (!client.round.in)
 							return
 						crashPlayers(client)
 					}, 250)
 				} else {
-					if (!('autoCrashInterval' in client.storage.autoCrashInterval))
+					if (!('autoCrashInterval' in client))
 						break
-					clearInterval(client.storage.autoCrashInterval)
-					delete client.storage.autoCrashInterval
+					clearInterval(client.autoCrashInterval)
+					delete client.autoCrashInterval
 				}
 		}
 	}
