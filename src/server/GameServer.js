@@ -117,6 +117,13 @@ module.exports = function(options) {
 		})
 	}
 
+	function sendHollow(client) {
+		if (client.storage.gameInjected)
+			runScript(client, true, "if(Hero.self != null){Hero.self.onHollow(0);}")
+		client.proxy.sendPacket('ROUND_NUT', PacketClient.NUT_PICK)
+		client.proxy.sendPacket('ROUND_HOLLOW', 0)
+	}
+
 	function getSettings(client) {
 		if (!fs.existsSync(options.local.cacheDir + '/settings' + client.uid + '.json'))
 			return {}
@@ -193,9 +200,10 @@ module.exports = function(options) {
 						crashPlayers(client)
 					}, 250)
 				} else {
-					if (client.storage.autoCrashInterval == null)
+					if (!('autoCrashInterval' in client.storage.autoCrashInterval))
 						break
 					clearInterval(client.storage.autoCrashInterval)
+					delete client.storage.autoCrashInterval
 				}
 		}
 	}
@@ -375,10 +383,10 @@ module.exports = function(options) {
 			chatType,
 			messages
 		} = packet.data
-		if (client.settings.ignoreRoomChat && chatType == 0 ||
-			client.settings.ignoreClanChat && chatType == 1 ||
-			client.settings.ignoreCommonChat && chatType == 2 ||
-			client.settings.ignoreNewbieChat && chatType == 3
+		if (client.settings.ignoreRoomChat && chatType === 0 ||
+			client.settings.ignoreClanChat && chatType === 1 ||
+			client.settings.ignoreCommonChat && chatType === 2 ||
+			client.settings.ignoreNewbieChat && chatType === 3
 		)
 			return true
 		for (let i in messages) {
@@ -398,10 +406,10 @@ module.exports = function(options) {
 			playerId,
 			message
 		} = packet.data
-		if (client.settings.ignoreRoomChat && chatType == 0 ||
-			client.settings.ignoreClanChat && chatType == 1 ||
-			client.settings.ignoreCommonChat && chatType == 2 ||
-			client.settings.ignoreNewbieChat && chatType == 3
+		if (client.settings.ignoreRoomChat && chatType === 0 ||
+			client.settings.ignoreClanChat && chatType === 1 ||
+			client.settings.ignoreCommonChat && chatType === 2 ||
+			client.settings.ignoreNewbieChat && chatType === 3
 		)
 			return true
 		if (client.settings.sanitizeChat)
@@ -519,9 +527,9 @@ module.exports = function(options) {
 							return
 						if (!client.settings.autoHollow)
 							return
-						if (client.storage.gameInjected)
-							runScript(client, true, "if(Hero.self != null){Hero.self.onHollow(0);}");
-						client.proxy.sendPacket('ROUND_HOLLOW', 0)
+						if (client.storage.shamans.indexOf(client.uid) != -1)
+							return setTimeout(sendHollow, 1000, client)
+						sendHollow(client)
 					}, 4000)
 				}
 		}
@@ -704,6 +712,15 @@ module.exports = function(options) {
 		return false
 	}
 
+	function handleRoundShamanServerPacket(client, packet, buffer) {
+		let {
+			playerId,
+			teams
+		} = packet.data
+		client.storage.shamans = playerId
+		return false
+	}
+
 	function handleServerPacket(client, packet, buffer) {
 		Logger.debug('net', 'GameServer.onServerPacket', packet)
 		switch (packet.type) {
@@ -763,6 +780,10 @@ module.exports = function(options) {
 				break
 			case 'PacketRoundCommand':
 				if (handleRoundCommandServerPacket(client, packet, buffer))
+					return false
+				break
+			case 'PacketRoundShaman':
+				if (handleRoundShamanServerPacket(client, packet, buffer))
 					return false
 				break
 			case 'PacketRoundCastBegin':

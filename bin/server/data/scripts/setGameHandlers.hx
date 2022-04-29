@@ -74,6 +74,7 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 		if(e.keyCode == Keyboard.NUMBER_3) {
 			var PacketClient = Type.resolveClass("protocol.PacketClient");
 			Hs.onHollow(0);
+			Game.self.est.sendData(PacketClient.ROUND_NUT, PacketClient.NUT_PICK);
 			Game.self.est.sendData(PacketClient.ROUND_HOLLOW, 0);
 		}
 		if(e.keyCode == Keyboard.NUMBER_4) {
