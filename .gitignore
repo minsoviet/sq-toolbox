@@ -1,3 +1,5 @@
 bin/**/*.log
 bin/server/cache/**
 bin/server/scripts/**
+src/bots.js
+bin/bots/**

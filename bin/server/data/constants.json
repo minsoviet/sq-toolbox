@@ -28,6 +28,8 @@
         ["ignoreMana", "Игн. обн. маны"],
         ["ignoreDailyQuests", "Игн. обн. заданий"],
         ["showAllObjects", "Отобр. все объекты"],
+        ["autoHollow", "Авт. заход. в дупло"],
+        ["autoCrash", "Авт. выкидывать игр."],
         ["notifyRoom", "Увед. о комнате"],
         ["notifyReports", "Увед. о жалобах"],
         ["notifyObjects", "Увед. об объектах"],

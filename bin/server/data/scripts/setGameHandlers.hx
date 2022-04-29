@@ -61,15 +61,28 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 	}
 	var Hs = Hero.self;
 	if(Hs != null) {
-		if(e.keyCode == Keyboard.R) {
+		if(e.keyCode == Keyboard.NUMBER_2) {
+			var PacketClient = Type.resolveClass("protocol.PacketClient");
+			if(Hs.hasNut) {
+				Hs.setMode(Hero.NUDE_MOD);
+				Game.self.est.sendData(PacketClient.ROUND_NUT, PacketClient.NUT_LOST);
+			} else {
+				Hs.setMode(Hero.NUT_MOD);
+				Game.self.est.sendData(PacketClient.ROUND_NUT, PacketClient.NUT_PICK);
+			}
+		}
+		if(e.keyCode == Keyboard.NUMBER_3) {
+			var PacketClient = Type.resolveClass("protocol.PacketClient");
+			Hs.onHollow(0);
+			Game.self.est.sendData(PacketClient.ROUND_HOLLOW, 0);
+		}
+		if(e.keyCode == Keyboard.NUMBER_4) {
 			Hs.dieReason = Hero.DIE_REPORT;
 			Hs.dead = true;
 		}
-		if(e.keyCode == Keyboard.T) {
-			Hs.setMode(Hero.NUT_MOD);
-		}
-		if(e.keyCode == Keyboard.Y) {
-			Hs.onHollow(0);
+		if(e.keyCode == Keyboard.NUMBER_5) {
+			var PacketClient = Type.resolveClass("protocol.PacketClient");
+			Game.self.est.sendData(PacketClient.ROUND_RESPAWN);
 		}
 	}
 });

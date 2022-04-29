@@ -12,7 +12,7 @@ const createWebServer = require('./server/WebServer.js')
 const createPolicyServer = require('./server/PolicyServer.js')
 const createGameServer = require('./server/GameServer.js')
 
-const OPTIONS_FILE = 'Сonfig.wtf'
+const OPTIONS_FILE = 'Config.wtf'
 
 async function main() {
 	const options = WtfFileFormat.read(OPTIONS_FILE)

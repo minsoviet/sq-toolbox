@@ -70,7 +70,7 @@ module.exports = function(options) {
 			playerId: client.uid,
 			dataJson: {
 				'Create': [57, [
-					[0, 0], 0, false, [script, '', [1000000, 1000000], true, true, true, true, false, isHaxe]
+					[0, 0], 0, false, [script, '', [1048575, 1048575], true, true, true, true, false, isHaxe]
 				], true]
 			}
 		})
@@ -82,7 +82,7 @@ module.exports = function(options) {
 			playerId: client.uid,
 			dataJson: {
 				'Create': [74, [
-					[0, 0], 0, false, [script, '', [1000000, 1000000], true, true, true, true, false, isHaxe]
+					[0, 0], 0, false, [script, '', [1048575, 1048575], true, true, true, true, false, isHaxe]
 				], true]
 			}
 		})
@@ -103,6 +103,17 @@ module.exports = function(options) {
 			dataJson: {
 				'est': ['runExternalScript', 'function(){' + script + '}']
 			}
+		})
+	}
+
+	function crashPlayers(client) {
+		client.round.ignoreSelfCreates = (client.round.ignoreSelfCreates || 0) + 1
+		client.proxy.sendPacket('ROUND_COMMAND', {
+			'Create': [1, [
+				[
+					[]
+				]
+			], true]
 		})
 	}
 
@@ -128,10 +139,12 @@ module.exports = function(options) {
 		})
 	}
 
-	function updateSetting(client, name, value) {
+	function updateSetting(client, name, value, isFirstRun) {
 		let player = client.player
 		switch (name) {
 			case 'fakeVIP':
+				if (isFirstRun)
+					return;
 				if (!value)
 					client.sendPacket('PacketExpirations', {
 						items: [client.storage.origVIPExpiration]
@@ -146,6 +159,8 @@ module.exports = function(options) {
 					})
 				break
 			case 'fakeModerator':
+				if (isFirstRun)
+					return;
 				let moderator = player.moderator || value
 				client.sendPacket('PacketInfo', {
 					data: [{
@@ -155,6 +170,8 @@ module.exports = function(options) {
 				})
 				break
 			case 'fakeLevel':
+				if (isFirstRun)
+					return;
 				let exp = player.exp
 				if (value)
 					exp = levelToExp(200)
@@ -167,6 +184,19 @@ module.exports = function(options) {
 						exp: exp
 					}]
 				})
+				break
+			case 'autoCrash':
+				if (value) {
+					client.storage.autoCrashInterval = setInterval(function() {
+						if (!client.round.in)
+							return
+						crashPlayers(client)
+					}, 250)
+				} else {
+					if (client.storage.autoCrashInterval == null)
+						break
+					clearInterval(client.storage.autoCrashInterval)
+				}
 		}
 	}
 
@@ -291,6 +321,9 @@ module.exports = function(options) {
 		client.uid = packet.data.innerId
 		let settings = getSettings(client)
 		client.settings = Object.assign(defaults, settings)
+		for (let name of Object.keys(client.settings)) {
+			updateSetting(client, name, client.settings[name], true)
+		}
 		saveSettings(client)
 		return false
 	}
@@ -439,7 +472,7 @@ module.exports = function(options) {
 			item.duration = 2147483647
 			break
 		}
-		if(client.settings.fakeVIP && !added) {
+		if (client.settings.fakeVIP && !added) {
 			items.push({
 				type: ExpirationsManager.VIP,
 				exists: 1,
@@ -470,7 +503,7 @@ module.exports = function(options) {
 					ignoreSelfDestroys: 0
 				}
 				if (client.settings.gameInject) {
-					if(client.storage.gameInjected) {
+					if (client.storage.gameInjected) {
 						runScript(client, true, scripts.onNewRound)
 					} else {
 						client.defer.push(function() {
@@ -479,6 +512,17 @@ module.exports = function(options) {
 							createMapSensorRect(client, true, scripts.inject)
 						})
 					}
+				}
+				if (client.settings.autoHollow) {
+					setTimeout(function() {
+						if (!client.round.in)
+							return
+						if (!client.settings.autoHollow)
+							return
+						if (client.storage.gameInjected)
+							runScript(client, true, "if(Hero.self != null){Hero.self.onHollow(0);}");
+						client.proxy.sendPacket('ROUND_HOLLOW', 0)
+					}, 4000)
 				}
 		}
 		if (client.handlers.onRoomRound) {
@@ -620,7 +664,7 @@ module.exports = function(options) {
 			}
 		}
 		if ('Destroy' in dataJson) {
-			if (client.settings.ignoreBadObjects && (!isValidDestroy(dataJson.Destroy) || !client.round.created[playerId])) {
+			if (client.settings.ignoreBadObjects && (!isValidDestroy(dataJson.Destroy) || !client.round.created[playerId] || (client.round.mapObjects != undefined && dataJson.Destroy[0] < client.round.mapObjects))) {
 				if (playerId === client.uid && client.round.ignoreSelfDestroys) {
 					client.round.ignoreSelfDestroys--
 					return true
@@ -637,7 +681,7 @@ module.exports = function(options) {
 				}
 				return true
 			}
-			if(client.round.created[playerId])
+			if (client.round.created[playerId])
 				client.round.created[playerId]--
 		}
 		return false
@@ -653,7 +697,7 @@ module.exports = function(options) {
 		let {success} = packet.data
 		if (!success) {
 			for (player of client.round.players) {
-				if(client.round.created[player])
+				if (client.round.created[player])
 					client.round.created[player]--
 			}
 		}
@@ -762,8 +806,8 @@ module.exports = function(options) {
 		let [data] = packet.data
 		if (!client.settings.gameInject)
 			return
-		if('ScriptedTimer' in data || 'Sensor' in data) {
-			if(!client.storage.gameInjected) {
+		if ('ScriptedTimer' in data || 'Sensor' in data) {
+			if (!client.storage.gameInjected) {
 				client.sendPacket('PacketRoundCommand', {
 					playerId: client.uid,
 					dataJson: data
@@ -797,7 +841,7 @@ module.exports = function(options) {
 					break
 				case 'updateSetting':
 					client.settings[data['est'][1]] = data['est'][2]
-					updateSetting(client, data['est'][1], data['est'][2])
+					updateSetting(client, data['est'][1], data['est'][2], false)
 					sendSettings(client)
 					runScript(client, true, scripts.onSettingsUpdate)
 					saveSettings(client)
@@ -887,23 +931,22 @@ module.exports = function(options) {
 	}
 
 	function handleHackOlympicCommand(client, chatType, args) {
+		if (client.round.in)
+			return showMessage(client, 'Вы уже на локации.')
 		client.proxy.sendPacket('PLAY', 15, 0)
 	}
 
 	function handleHackSkillCommand(client, chatType, args) {
+		if (!client.round.in)
+			return showMessage(client, 'Вы не на локации.')
 		client.storage.cancelNextSkill = true
 		showMessage(client, 'Следующая способность будет багнута отменой.')
 	}
 
 	function handleHackCrashCommand(client, chatType, args) {
-		client.storage.ignoreSelfCreates = 1
-		client.proxy.sendPacket('ROUND_COMMAND', {
-			'Create': [1, [
-				[
-					[]
-				]
-			], true]
-		})
+		if (!client.round.in)
+			return showMessage(client, 'Вы не на локации.')
+		crashPlayers(client)
 	}
 
 	function handleHackCommand(client, chatType, args) {

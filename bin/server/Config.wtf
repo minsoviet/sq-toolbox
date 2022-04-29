@@ -65,7 +65,7 @@ CAT "remote"
 # REMOTE SERVER SETTINGS
 #
 #    host
-#        Description: Remote server binding address.
+#        Description: Remote server address.
 #        Default:     "88.212.206.137"
 #
 
