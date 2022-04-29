@@ -798,6 +798,7 @@ module.exports = function(options) {
 				case 'updateSetting':
 					client.settings[data['est'][1]] = data['est'][2]
 					updateSetting(client, data['est'][1], data['est'][2])
+					sendSettings(client)
 					runScript(client, true, scripts.onSettingsUpdate)
 					saveSettings(client)
 					break

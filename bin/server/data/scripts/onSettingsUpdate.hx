@@ -47,4 +47,18 @@ if(Hs != null) {
 	}
 }
 
-Est.oldSettings = settings;
+var squirrelGame = Type.resolveClass("game.mainGame.SquirrelGame").instance;
+if(squirrelGame != null) {
+	if(isChanged("showAllObjects", null)) {
+		var gameObjects = squirrelGame.map.gameObjects();
+		var i = 0;
+		while(i < gameObjects.length) {
+			try {
+				gameObjects[i].showDebug = settings.showAllObjects;
+			} catch(e:Dynamic) {};
+			i++;
+		}
+	}
+}
+
+Est.oldSettings = JSON.parse(JSON.stringify(settings));

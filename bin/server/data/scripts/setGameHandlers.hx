@@ -49,7 +49,7 @@ Est.addLoggerHandler(function(message) {
 var Keyboard = Type.resolveClass("flash.ui.Keyboard");
 var KeyboardEvent = Type.resolveClass("flash.events.KeyboardEvent");
 Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
-	var settings = Est.settings;
+	var settings = Game.self.est.settings;
 	if(settings == null) {
 		return;
 	}
@@ -61,15 +61,15 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 	}
 	var Hs = Hero.self;
 	if(Hs != null) {
-		if(e.keyCode == Keyboard.K) {
+		if(e.keyCode == Keyboard.R) {
 			Hs.dieReason = Hero.DIE_REPORT;
 			Hs.dead = true;
 		}
-		if(e.keyCode == Keyboard.H) {
-			Hs.inHollow = true;
-		}
-		if(e.keyCode == Keyboard.N) {
+		if(e.keyCode == Keyboard.T) {
 			Hs.setMode(Hero.NUT_MOD);
+		}
+		if(e.keyCode == Keyboard.Y) {
+			Hs.onHollow(0);
 		}
 	}
 });

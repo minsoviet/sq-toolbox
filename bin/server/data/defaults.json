@@ -33,5 +33,5 @@
   "logRoom": true,
   "logReports": true,
   "logBadObjects": true,
-  "debugMode": true
+  "debugMode": false
 }

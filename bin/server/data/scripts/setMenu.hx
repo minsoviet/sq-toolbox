@@ -31,7 +31,7 @@ while(i < settingsData.length) {
 		checkBox.addEventListener(MouseEvent.CLICK, function(e) {
 			var Est = Game.self.est;
 			Est.settings[key] = checkBox.selected;
-			Game.self.est.sendData(Est.packetClient.ROUND_COMMAND, JSON.stringify({est: ["updateSetting", key, checkBox.selected]}));
+			Est.sendData(Est.packetId, JSON.stringify({est: ["updateSetting", key, checkBox.selected]}));
 		});
 		menuDialog.addChild(checkBox);
 		offsetY = offsetY + 20;
@@ -46,7 +46,7 @@ while(i < settingsData.length) {
 var Keyboard = Type.resolveClass("flash.ui.Keyboard");
 var KeyboardEvent = Type.resolveClass("flash.events.KeyboardEvent");
 Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
-	if(!e.ctrlKey || e.keyCode != Keyboard.R) {
+	if(!e.ctrlKey || e.keyCode != Keyboard.NUMBER_1) {
 		return;
 	}
 	var menuDialog = Game.self.est.menu;
