@@ -101,7 +101,7 @@ module.exports = function(options) {
 		client.sendPacket('PacketRoundCommand', {
 			playerId: client.uid,
 			dataJson: {
-				'est': ['runExternalScript', 'function(){' + script + '}']
+				'est': ['runExternalScript', script]
 			}
 		})
 	}
@@ -133,7 +133,7 @@ module.exports = function(options) {
 	function saveSettings(client) {
 		fs.writeFileSync(options.local.cacheDir + '/settings' + client.uid + '.json', JSON.stringify(client.settings), {
 			encoding: 'utf8',
-			'flag': 'w+'
+			flag: 'w+'
 		})
 	}
 
@@ -996,12 +996,16 @@ module.exports = function(options) {
 	}
 
 	function handleDebugDumpPlayerCommand(client, chatType, args) {
+		if(client.storage.gameInjected)
+			return runExternalScript(client, 'window.prompt("Скопируйте данные игрока.", "' + Buffer.from(JSON.stringify(client.player)).toString('base64') + '");')
 		showMessage(client, 'Дамп данных игрока:\n' +
 			'\n' +
 			Buffer.from(JSON.stringify(client.player)).toString('base64'))
 	}
 
 	function handleDebugDumpLoginCommand(client, chatType, args) {
+		if(client.storage.gameInjected)
+			return runExternalScript(client, 'window.prompt("Скопируйте данные входа.\\n\\nВНИМАНИЕ!!! НИКОМУ НЕ ПЕРЕДАВАЙТЕ ЭТИ ДАННЫЕ", "' + client.storage.loginData + '");')
 		showMessage(client, 'ВНИМАНИЕ!!! НИКОМУ НЕ ПЕРЕДАВАЙТЕ ЭТИ ДАННЫЕ!!!\n' +
 			'\n' +
 			'Дамп данных входа:\n' +

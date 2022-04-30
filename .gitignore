@@ -1,5 +1,8 @@
 bin/**/*.log
 bin/server/cache/**
 bin/server/scripts/**
+node_modules/node-imap/**
 src/bots.js
 bin/bots/**
+src/level.js
+bin/level/**
