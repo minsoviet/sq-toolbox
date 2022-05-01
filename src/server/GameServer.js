@@ -319,7 +319,7 @@ module.exports = function(options) {
 		client.round = {
 			in: false
 		}
-		Logger.info('server', `Вы вошли в игру как ${getPlayerMention(client, client.uid)}`)
+		Logger.info('server', `Вы вошли как ${getPlayerMention(client, client.uid)}`)
 		showMessage(client, 'Для полной активации функций нужно попасть на локацию.')
 	}
 
@@ -420,8 +420,8 @@ module.exports = function(options) {
 	}
 
 	function handleExperienceServerPacket(client, packet, buffer) {
-		if (client.settings.fakeLevel !== -1)
-			packet.exp = levelToExp(client.settings.fakeLevel)
+		if (client.settings.fakeLevel)
+			packet.exp = levelToExp(200)
 		return client.settings.ignoreExperience
 	}
 
@@ -500,7 +500,9 @@ module.exports = function(options) {
 				client.round = {
 					in: false,
 					players: client.room.players.slice(),
-					created: {}
+					created: {},
+					ignoreSelfCreates: 0,
+					ignoreSelfDestroys: 0
 				}
 				break
 			case PacketServer.ROUND_PLAYING:
@@ -510,7 +512,8 @@ module.exports = function(options) {
 					players: client.room.players.slice(),
 					created: {},
 					ignoreSelfCreates: 0,
-					ignoreSelfDestroys: 0
+					ignoreSelfDestroys: 0,
+					inHollow: []
 				}
 				if (client.settings.gameInject) {
 					if (client.storage.gameInjected) {
@@ -525,14 +528,20 @@ module.exports = function(options) {
 				}
 				if (client.settings.autoHollow) {
 					setTimeout(function() {
-						if (!client.round.in)
-							return
-						if (!client.settings.autoHollow)
-							return
-						if (client.storage.shamans.indexOf(client.uid) != -1)
-							return setTimeout(sendHollow, 1000, client)
-						sendHollow(client)
-					}, 4000)
+						client.autoHollowInterval = setInterval(function() {
+							if (!client.round.in)
+								return clearInterval(client.autoHollowInterval)
+							if (!client.settings.autoHollow)
+								return clearInterval(client.autoHollowInterval)
+							if (client.storage.shamans.indexOf(client.uid) !== -1) {
+								for (let player of client.round.players) {
+									if (client.round.inHollow.indexOf(player) === -1)
+										return
+								}
+							}
+							sendHollow(client)
+						}, 500)
+					}, 3500)
 				}
 		}
 		if (client.handlers.onRoomRound) {
@@ -719,7 +728,17 @@ module.exports = function(options) {
 			playerId,
 			teams
 		} = packet.data
-		client.storage.shamans = playerId
+		client.storage.shamans = playerId.slice()
+		return false
+	}
+
+	function handleRoundHollowServerPacket(client, packet, buffer) {
+		let {
+			success,
+			playerId
+		} = packet.data
+		if(success)
+			client.round.inHollow.push(playerId)
 		return false
 	}
 
@@ -786,6 +805,10 @@ module.exports = function(options) {
 				break
 			case 'PacketRoundShaman':
 				if (handleRoundShamanServerPacket(client, packet, buffer))
+					return false
+				break
+			case 'PacketRoundHollow':
+				if (handleRoundHollowServerPacket(client, packet, buffer))
 					return false
 				break
 			case 'PacketRoundCastBegin':
@@ -1152,8 +1175,9 @@ module.exports = function(options) {
 
 	function handleClose(client) {
 		if (client.uid)
-			Logger.info('server', `Вы вышли из игры как ${getPlayerMention(client, client.uid)}`)
+			Logger.info('server', `Вы вышли как ${getPlayerMention(client, client.uid)}`)
 		clients.splice(clients.indexOf(client), 1)
+		client.removeAllListeners()
 		if (!client.proxy)
 			return true
 		client.proxy.removeAllListeners()
