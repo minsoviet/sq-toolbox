@@ -542,6 +542,7 @@ module.exports = function(options) {
 								}
 							}
 							sendHollow(client)
+							clearInterval(client.autoHollowInterval)
 						}, 500)
 					}, 3500)
 				}
