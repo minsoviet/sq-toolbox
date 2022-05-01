@@ -516,7 +516,7 @@ module.exports = function(options) {
 					created: {},
 					ignoreSelfCreates: 0,
 					ignoreSelfDestroys: 0,
-					inHollow: []
+					hollow: []
 				}
 				if (client.settings.gameInject) {
 					if (client.storage.gameInjected) {
@@ -542,16 +542,16 @@ module.exports = function(options) {
 								return clearInterval(client.autoHollowInterval)
 							if (client.storage.shamans.indexOf(client.uid) !== -1) {
 								for (let player of client.round.players) {
-									if (client.uid === player)
+									if (client.storage.shamans.indexOf(player) !== -1)
 										continue
-									if (client.round.inHollow.indexOf(player) === -1)
+									if (client.round.hollow.indexOf(player) === -1)
 										return
 								}
 							}
 							sendHollow(client)
 							clearInterval(client.autoHollowInterval)
-						}, 500)
-					}, 3500)
+						}, 250)
+					}, 3750)
 				}
 		}
 		if (client.handlers.onRoomRound) {
@@ -629,21 +629,22 @@ module.exports = function(options) {
 		} = packet.data
 		if (playerId === client.uid) {
 			client.room = {
-				in: false,
-				players: []
+				in: false
 			}
-		} else {
-			client.room.players.splice(client.room.players.indexOf(playerId), 1)
-			if (client.settings.logRoom) {
-				Logger.info('server', `${getPlayerMention(client, playerId)} вышел из комнаты`)
+			client.round = {
+				in: false
 			}
-			if (client.settings.notifyRoom) {
-				client.sendData('PacketChatMessage', {
-					chatType: 0,
-					playerId: playerId,
-					message: '<span class=\'color1\'>Вышел из комнаты</span>'
-				})
-			}
+			return false
+		}
+		client.room.players.splice(client.room.players.indexOf(playerId), 1)
+		if (client.settings.logRoom)
+			Logger.info('server', `${getPlayerMention(client, playerId)} вышел из комнаты`)
+		if (client.settings.notifyRoom) {
+			client.sendData('PacketChatMessage', {
+				chatType: 0,
+				playerId: playerId,
+				message: '<span class=\'color1\'>Вышел из комнаты</span>'
+			})
 		}
 		return false
 	}
@@ -749,8 +750,8 @@ module.exports = function(options) {
 			success,
 			playerId
 		} = packet.data
-		if(success)
-			client.round.inHollow.push(playerId)
+		if(success === 0)
+			client.round.hollow.push(playerId)
 		return false
 	}
 
