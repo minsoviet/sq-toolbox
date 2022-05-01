@@ -493,7 +493,10 @@ module.exports = function(options) {
 	}
 
 	function handleRoomRoundServerPacket(client, packet, buffer) {
-		switch (packet.data.type) {
+		let {
+			type
+		} = packet.data
+		switch (type) {
 			case PacketServer.ROUND_WAITING:
 			case PacketServer.ROUND_STARTING:
 			case PacketServer.ROUND_RESULTS:
@@ -528,6 +531,10 @@ module.exports = function(options) {
 				}
 				if (client.settings.autoHollow) {
 					setTimeout(function() {
+						if (!client.round.in)
+							return
+						if (!client.settings.autoHollow)
+							return
 						client.autoHollowInterval = setInterval(function() {
 							if (!client.round.in)
 								return clearInterval(client.autoHollowInterval)
@@ -716,7 +723,9 @@ module.exports = function(options) {
 	}
 
 	function handleRoundCastEndServerPacket(client, packet, buffer) {
-		let {success} = packet.data
+		let {
+			success
+		} = packet.data
 		if (!success) {
 			for (player of client.round.players) {
 				if (client.round.created[player])
