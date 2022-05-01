@@ -535,7 +535,7 @@ module.exports = function(options) {
 								return clearInterval(client.autoHollowInterval)
 							if (client.storage.shamans.indexOf(client.uid) !== -1) {
 								for (let player of client.round.players) {
-									if (client.uid === player.uid)
+									if (client.uid === player)
 										continue
 									if (client.round.inHollow.indexOf(player) === -1)
 										return
