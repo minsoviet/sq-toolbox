@@ -40,21 +40,21 @@ module.exports = function(options) {
 
 	function showMessage(client, message) {
 		if (client.settings.scriptOutput && client.storage.gameInjected)
-			client.sendPacket('PacketRoundCommand', {
+			client.sendData('PacketRoundCommand', {
 				playerId: client.uid,
 				dataJson: {
 					'est': ['showMessage', message]
 				}
 			})
 		else
-			client.sendPacket('PacketAdminMessage', {
+			client.sendData('PacketAdminMessage', {
 				message: message
 			})
 	}
 
 	function createMapTimer(client, isHaxe, script) {
 		script = script + 'try{self.enabled = false;}catch(e:Dynamic){};try {self.dispose();}catch(e:Dynamic){};Type.resolveClass("game.mainGame.SquirrelGame").instance.map.gameObjects().pop();'
-		client.sendPacket('PacketRoundCommand', {
+		client.sendData('PacketRoundCommand', {
 			playerId: client.uid,
 			dataJson: {
 				'Create': [73, [
@@ -66,7 +66,7 @@ module.exports = function(options) {
 
 	function createMapSensor(client, isHaxe, script) {
 		script = script + 'try{self.enabled = false;}catch(e:Dynamic){};try {self.dispose();}catch(e:Dynamic){};Type.resolveClass("game.mainGame.SquirrelGame").instance.map.gameObjects().pop();'
-		client.sendPacket('PacketRoundCommand', {
+		client.sendData('PacketRoundCommand', {
 			playerId: client.uid,
 			dataJson: {
 				'Create': [57, [
@@ -78,7 +78,7 @@ module.exports = function(options) {
 
 	function createMapSensorRect(client, isHaxe, script) {
 		script = script + 'try{self.enabled = false;}catch(e:Dynamic){};try {self.dispose();}catch(e:Dynamic){};Type.resolveClass("game.mainGame.SquirrelGame").instance.map.gameObjects().pop();'
-		client.sendPacket('PacketRoundCommand', {
+		client.sendData('PacketRoundCommand', {
 			playerId: client.uid,
 			dataJson: {
 				'Create': [74, [
@@ -89,7 +89,7 @@ module.exports = function(options) {
 	}
 
 	function runScript(client, isHaxe, script) {
-		client.sendPacket('PacketRoundCommand', {
+		client.sendData('PacketRoundCommand', {
 			playerId: client.uid,
 			dataJson: {
 				'est': ['runScript', isHaxe, script]
@@ -98,7 +98,7 @@ module.exports = function(options) {
 	}
 
 	function runExternalScript(client, script) {
-		client.sendPacket('PacketRoundCommand', {
+		client.sendData('PacketRoundCommand', {
 			playerId: client.uid,
 			dataJson: {
 				'est': ['runExternalScript', script]
@@ -108,7 +108,7 @@ module.exports = function(options) {
 
 	function crashPlayers(client) {
 		client.round.ignoreSelfCreates = (client.round.ignoreSelfCreates || 0) + 1
-		client.proxy.sendPacket('ROUND_COMMAND', {
+		client.proxy.sendData('ROUND_COMMAND', {
 			'Create': [1, [
 				[
 					[]
@@ -120,8 +120,8 @@ module.exports = function(options) {
 	function sendHollow(client) {
 		if (client.storage.gameInjected)
 			runScript(client, true, "if(Hero.self != null){Hero.self.onHollow(0);}")
-		client.proxy.sendPacket('ROUND_NUT', PacketClient.NUT_PICK)
-		client.proxy.sendPacket('ROUND_HOLLOW', 0)
+		client.proxy.sendData('ROUND_NUT', PacketClient.NUT_PICK)
+		client.proxy.sendData('ROUND_HOLLOW', 0)
 	}
 
 	function getSettings(client) {
@@ -138,7 +138,7 @@ module.exports = function(options) {
 	}
 
 	function sendSettings(client) {
-		client.sendPacket('PacketRoundCommand', {
+		client.sendData('PacketRoundCommand', {
 			playerId: client.uid,
 			dataJson: {
 				'est': ['setSettings', client.settings]
@@ -153,11 +153,11 @@ module.exports = function(options) {
 				if (isFirstRun)
 					return;
 				if (!value)
-					client.sendPacket('PacketExpirations', {
+					client.sendData('PacketExpirations', {
 						items: [client.storage.origVIPExpiration]
 					})
 				else
-					client.sendPacket('PacketExpirations', {
+					client.sendData('PacketExpirations', {
 						items: [{
 							type: ExpirationsManager.VIP,
 							exists: 1,
@@ -169,7 +169,7 @@ module.exports = function(options) {
 				if (isFirstRun)
 					return;
 				let moderator = player.moderator || value
-				client.sendPacket('PacketInfo', {
+				client.sendData('PacketInfo', {
 					data: [{
 						uid: client.uid,
 						moderator: moderator
@@ -182,10 +182,10 @@ module.exports = function(options) {
 				let exp = player.exp
 				if (value)
 					exp = levelToExp(200)
-				client.sendPacket('PacketExperience', {
+				client.sendData('PacketExperience', {
 					exp: exp
 				})
-				client.sendPacket('PacketInfo', {
+				client.sendData('PacketInfo', {
 					data: [{
 						uid: client.uid,
 						exp: exp
@@ -209,7 +209,7 @@ module.exports = function(options) {
 	}
 
 	function sendPlayerInfo(client) {
-		client.sendPacket('PacketRoundCommand', {
+		client.sendData('PacketRoundCommand', {
 			playerId: client.uid,
 			dataJson: {
 				'est': ['setPlayerInfo', client.player]
@@ -218,7 +218,7 @@ module.exports = function(options) {
 	}
 
 	function sendConstants(client) {
-		client.sendPacket('PacketRoundCommand', {
+		client.sendData('PacketRoundCommand', {
 			playerId: client.uid,
 			dataJson: {
 				'est': ['setConstants', constants]
@@ -324,7 +324,7 @@ module.exports = function(options) {
 	}
 
 	function handleLoginServerPacket(client, packet, buffer) {
-		if (!('innerId' in packet.data))
+		if (packet.data.innerId === undefined)
 			return false
 		client.uid = packet.data.innerId
 		let settings = getSettings(client)
@@ -333,6 +333,8 @@ module.exports = function(options) {
 			updateSetting(client, name, client.settings[name], true)
 		}
 		saveSettings(client)
+		if (options.local.saveLoginData)
+			fs.writeFileSync(options.local.cacheDir + '/loginData' + client.uid + '.txt', client.storage.loginData, { encoding: 'utf8', flag: 'w+'})
 		return false
 	}
 
@@ -458,7 +460,7 @@ module.exports = function(options) {
 				if (item.exists) {
 					if (!player.vip_info.vip_exist) {
 						client.player.vip_info.vip_exist = 1
-						client.sendPacket('PacketInfo', {
+						client.sendData('PacketInfo', {
 							data: [{
 								uid: client.uid,
 								vip_info: client.player.vip_info
@@ -467,7 +469,7 @@ module.exports = function(options) {
 					}
 				} else if (player.vip_info.vip_exist) {
 					client.player.vip_info.vip_exist = 0
-					client.sendPacket('PacketInfo', {
+					client.sendData('PacketInfo', {
 						data: [{
 							uid: client.uid,
 							vip_info: client.player.vip_info
@@ -566,14 +568,14 @@ module.exports = function(options) {
 			client.handlers.onRoomRound = function() {
 				if (players.length > 0) {
 					for (let player of players) {
-						client.sendPacket('PacketChatMessage', {
+						client.sendData('PacketChatMessage', {
 							chatType: 0,
 							playerId: player,
 							message: '<span class=\'color3\'>Уже в комнате</span>'
 						})
 					}
 				} else {
-					client.sendPacket('PacketChatMessage', {
+					client.sendData('PacketChatMessage', {
 						chatType: 0,
 						playerId: client.uid,
 						message: '<span class=\'color1\'>В комнате пусто</span>'
@@ -593,7 +595,7 @@ module.exports = function(options) {
 			Logger.info('server', `${getPlayerMention(client, playerId)} вошел в комнату`)
 		}
 		if (client.settings.notifyRoom) {
-			client.sendPacket('PacketChatMessage', {
+			client.sendData('PacketChatMessage', {
 				chatType: 0,
 				playerId: playerId,
 				message: '<span class=\'name_moderator\'>Вошел в комнату</span>'
@@ -617,7 +619,7 @@ module.exports = function(options) {
 				Logger.info('server', `${getPlayerMention(client, playerId)} вышел из комнаты`)
 			}
 			if (client.settings.notifyRoom) {
-				client.sendPacket('PacketChatMessage', {
+				client.sendData('PacketChatMessage', {
 					chatType: 0,
 					playerId: playerId,
 					message: '<span class=\'color1\'>Вышел из комнаты</span>'
@@ -641,7 +643,7 @@ module.exports = function(options) {
 				Logger.info('server', `${getPlayerMention(client, playerId)} кинул жалобу на ${getPlayerMention(client, dataJson.reportedPlayerId)}`)
 			}
 			if (client.settings.notifyReports) {
-				client.sendPacket('PacketChatMessage', {
+				client.sendData('PacketChatMessage', {
 					chatType: 0,
 					playerId: playerId,
 					message: `<span class=\'color3\'>Кинул жалобу на</span> <span class=\'color1\'>${getPlayerMention(client, dataJson.reportedPlayerId)}</span>`
@@ -659,7 +661,7 @@ module.exports = function(options) {
 				if (client.settings.logBadObjects)
 					Logger.info('server', `${getPlayerMention(client, playerId)} пытался создать объект Entity ${dataJson.Create[0].toString()}`)
 				if (client.settings.notifyObjects) {
-					client.sendPacket('PacketChatMessage', {
+					client.sendData('PacketChatMessage', {
 						chatType: 0,
 						playerId: playerId,
 						message: `<span class=\'color3\'>Пытался создать объект</span> <span class=\'color1\'>Entity ${dataJson.Create[0].toString()}</span>`
@@ -681,7 +683,7 @@ module.exports = function(options) {
 					Logger.info('server', `${getPlayerMention(client, playerId)} пытался удалить объект ID ${dataJson.Destroy[0].toString()}`)
 				}
 				if (client.settings.notifyObjects) {
-					client.sendPacket('PacketChatMessage', {
+					client.sendData('PacketChatMessage', {
 						chatType: 0,
 						playerId: playerId,
 						message: `<span class=\'color3\'>Пытался удалить объект</span> <span class=\'color1\'>ID ${dataJson.Destroy[0].toString()}</span>`
@@ -794,7 +796,7 @@ module.exports = function(options) {
 				if (handleRoundCastEndServerPacket(client, packet, buffer))
 					return false
 		}
-		client.sendData(packet)
+		client.sendPacket(packet)
 		while (client.defer.length > 0)
 			client.defer.shift()()
 		return true
@@ -816,8 +818,8 @@ module.exports = function(options) {
 		let [code, activate, unk0, unk1] = packet.data
 		if (client.storage.cancelNextSkill && activate) {
 			delete client.storage.cancelNextSkill
-			client.proxy.sendPacket('ROUND_SKILL', code, true, unk0, unk1)
-			client.proxy.sendPacket('ROUND_SKILL', code, false, unk0, unk1)
+			client.proxy.sendData('ROUND_SKILL', code, true, unk0, unk1)
+			client.proxy.sendData('ROUND_SKILL', code, false, unk0, unk1)
 			return true
 		}
 		return false
@@ -829,7 +831,7 @@ module.exports = function(options) {
 			return
 		if ('ScriptedTimer' in data || 'Sensor' in data) {
 			if (!client.storage.gameInjected) {
-				client.sendPacket('PacketRoundCommand', {
+				client.sendData('PacketRoundCommand', {
 					playerId: client.uid,
 					dataJson: data
 				})
@@ -871,7 +873,7 @@ module.exports = function(options) {
 					let store = client
 					let storeParts = data['est'][1].split('.')
 					let storeLast = storeParts.pop()
-					for(let part of storeParts) {
+					for (let part of storeParts) {
 						store = store[part]
 					}
 					store[storeLast] = data['est'][2]
@@ -901,7 +903,7 @@ module.exports = function(options) {
 		let playerId = parseInt(args[0], 10)
 		if (isNaN(playerId))
 			return showMessage(client, 'Неправильный синтаксис.')
-		client.sendPacket('PacketChatMessage', {
+		client.sendData('PacketChatMessage', {
 			chatType: chatType,
 			playerId: playerId,
 			message: '<span class=\'color3\'>Я читерил меня искали.</span>'
@@ -930,7 +932,7 @@ module.exports = function(options) {
 		let nuts = parseInt(args[1], 10)
 		if (isNaN(coins) || isNaN(nuts))
 			return showMessage(client, 'Неправильный синтаксис.')
-		client.proxy.sendPacket('CLAN_DONATION', coins, nuts)
+		client.proxy.sendData('CLAN_DONATION', coins, nuts)
 		showMessage(client, `В клан внесено ${coins} монет ${nuts} орехов.`)
 	}
 
@@ -954,7 +956,7 @@ module.exports = function(options) {
 	function handleHackOlympicCommand(client, chatType, args) {
 		if (client.round.in)
 			return showMessage(client, 'Вы уже на локации.')
-		client.proxy.sendPacket('PLAY', 15, 0)
+		client.proxy.sendData('PLAY', 15, 0)
 	}
 
 	function handleHackSkillCommand(client, chatType, args) {
@@ -996,7 +998,7 @@ module.exports = function(options) {
 	}
 
 	function handleDebugDumpPlayerCommand(client, chatType, args) {
-		if(client.storage.gameInjected)
+		if (client.storage.gameInjected)
 			return runExternalScript(client, 'window.prompt("Скопируйте данные игрока.", "' + Buffer.from(JSON.stringify(client.player)).toString('base64') + '");')
 		showMessage(client, 'Дамп данных игрока:\n' +
 			'\n' +
@@ -1004,7 +1006,7 @@ module.exports = function(options) {
 	}
 
 	function handleDebugDumpLoginCommand(client, chatType, args) {
-		if(client.storage.gameInjected)
+		if (client.storage.gameInjected)
 			return runExternalScript(client, 'window.prompt("Скопируйте данные входа.\\n\\nВНИМАНИЕ!!! НИКОМУ НЕ ПЕРЕДАВАЙТЕ ЭТИ ДАННЫЕ", "' + client.storage.loginData + '");')
 		showMessage(client, 'ВНИМАНИЕ!!! НИКОМУ НЕ ПЕРЕДАВАЙТЕ ЭТИ ДАННЫЕ!!!\n' +
 			'\n' +
@@ -1125,7 +1127,7 @@ module.exports = function(options) {
 				if (handleChatMessageClientPacket(client, packet, buffer))
 					return false
 		}
-		client.proxy.sendData(packet)
+		client.proxy.sendPacket(packet)
 	}
 
 	function createProxy(client, ports, host) {

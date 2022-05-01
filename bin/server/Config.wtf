@@ -57,6 +57,14 @@ SET scriptsDir "./scripts"
 SET cacheDir "./cache"
 
 #
+#    saveLoginData
+#        Description: Save login data.
+#        Default:     0
+#
+
+SET saveLoginData 0
+
+#
 ##########################################################################
 
 CAT "remote"
