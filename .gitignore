@@ -6,3 +6,4 @@ src/bots.js
 bin/bots/**
 src/level.js
 bin/level/**
+bin/mapdecompressor/**/*.map

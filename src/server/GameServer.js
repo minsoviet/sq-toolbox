@@ -17,7 +17,8 @@ const {
 	PacketClient,
 	PacketServer,
 	ConfigData,
-	ExpirationsManager
+	ExpirationsManager,
+	ClanRoom
 } = ClientData
 
 module.exports = function(options) {
@@ -736,6 +737,26 @@ module.exports = function(options) {
 		return false
 	}
 
+	function handleClanInfoServerPacket(client, packet, buffer) {
+		let {
+			mask,
+			data
+		} = packet.data
+		if (!('settings' in client) || !client.settings.filterClanPackets)
+			return false
+		if (mask !== 4096)
+			return false
+		if (data.length !== 1)
+			return false 
+		if (!('player' in client) || data[0].id !== client.player.clan_id)
+			return false
+		let time = getTime()
+		if ('lastSelfClanInfo' in client.storage && Math.abs(time - client.storage.lastSelfClanInfo) < 30)
+			return true
+		client.storage.lastSelfClanInfo = time
+		return false
+	}
+
 	function handleRoundShamanServerPacket(client, packet, buffer) {
 		let {
 			playerId,
@@ -830,6 +851,10 @@ module.exports = function(options) {
 				break
 			 case 'PacketRoundCastEnd':
 				if (handleRoundCastEndServerPacket(client, packet, buffer))
+					return false
+				break
+			case 'PacketClanInfo':
+				if (handleClanInfoServerPacket(client, packet, buffer))
 					return false
 		}
 		client.sendPacket(packet)
