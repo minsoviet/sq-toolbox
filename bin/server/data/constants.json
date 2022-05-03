@@ -30,7 +30,7 @@
         ["showAllObjects", "Отобр. все объекты"],
         ["autoHollow", "Авт. заход. в дупло"],
         ["autoCrash", "Авт. выкидывать игр."],
-        ["filterClanPackets", "Фильтр. пакеты клана"]
+        ["filterClanPackets", "Фильтр. пакеты клана"],
         ["notifyRoom", "Увед. о комнате"],
         ["notifyReports", "Увед. о жалобах"],
         ["notifyObjects", "Увед. об объектах"],
