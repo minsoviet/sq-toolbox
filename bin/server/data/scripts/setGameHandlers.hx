@@ -61,6 +61,8 @@ Est.addLoggerHandler(function(message) {
 			var perk = perkController.perksClothes[i];
 			try {
 				perk.currentCooldown = 0;
+			} catch(e:Dynamic) {};
+			try {
 				perk.activationCount = 0;
 			} catch(e:Dynamic) {};
 			i++;
@@ -73,6 +75,8 @@ Est.addLoggerHandler(function(message) {
 			var perk = perkController.perksHare[i];
 			try {
 				perk.currentCooldown = 0;
+			} catch(e:Dynamic) {};
+			try {
 				perk.activationCount = 0;
 			} catch(e:Dynamic) {};
 			i++;
@@ -85,6 +89,8 @@ Est.addLoggerHandler(function(message) {
 			var perk = perkController.perksCharacter[i];
 			try {
 				perk.currentCooldown = 0;
+			} catch(e:Dynamic) {};
+			try {
 				perk.activationCount = 0;
 			} catch(e:Dynamic) {};
 			i++;
@@ -97,6 +103,8 @@ Est.addLoggerHandler(function(message) {
 			var perk = perkController.perksDragon[i];
 			try {
 				perk.currentCooldown = 0;
+			} catch(e:Dynamic) {};
+			try {
 				perk.activationCount = 0;
 			} catch(e:Dynamic) {};
 			i++;
@@ -109,6 +117,8 @@ Est.addLoggerHandler(function(message) {
 			var perk = perkController.perksTotem[i];
 			try {
 				perk.currentCooldown = 0;
+			} catch(e:Dynamic) {};
+			try {
 				perk.activationCount = 0;
 			} catch(e:Dynamic) {};
 			i++;
@@ -121,6 +131,8 @@ Est.addLoggerHandler(function(message) {
 			var perk = perkController.perksShaman[i];
 			try {
 				perk.currentCooldown = 0;
+			} catch(e:Dynamic) {};
+			try {
 				perk.activationCount = 0;
 			} catch(e:Dynamic) {};
 			i++;
