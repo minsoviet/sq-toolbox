@@ -59,6 +59,26 @@ if(squirrelGame != null) {
 			i++;
 		}
 	}
+	if(isChanged("infiniteRadius", null)) {
+		if(settings.infiniteRadius) {
+			Est.oldCastRadius = squirrelGame.cast.castRadius;
+			squirrelGame.cast.castRadius = 0;
+		} else {
+			if(Reflect.hasField(Est, "oldCastRadius")) {
+				squirrelGame.cast.castRadius = Est.oldCastRadius;
+			}
+		}
+	}
+	if(isChanged("instantCast", null)) {
+		if(settings.instantCast) {
+			Est.oldCastTime = squirrelGame.cast.castTime;
+			squirrelGame.cast.castTime = 0;
+		} else {
+			if(Reflect.hasField(Est, "oldCastTime")) {
+				squirrelGame.cast.castTime = Est.oldCastTime;
+			}
+		}
+	}
 }
 
 Est.oldSettings = JSON.parse(JSON.stringify(settings));

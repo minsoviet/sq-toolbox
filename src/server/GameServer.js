@@ -342,8 +342,11 @@ module.exports = function(options) {
 	function handleNonSelfInfoServerPacket(client, mask, player) {
 		client.players[player.uid] = Object.assign(client.players[player.uid] || {}, player)
 		let fullPlayer = client.players[player.uid]
-		if (client.settings.noModerators && 'moderator' in player)
+		if (client.settings.noModerators && 'moderator' in player) {
+			if ('name' in player)
+				player.name = player.name + ' [М]'
 			player.moderator = 0
+		}
 		return false
 	}
 

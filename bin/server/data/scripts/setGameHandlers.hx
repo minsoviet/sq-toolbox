@@ -39,10 +39,99 @@ Est.addLoggerHandler(function(message) {
 		}
 	}
 
+	var squirrelGame = Type.resolveClass("game.mainGame.SquirrelGame").instance;
+	if(settings.infiniteRadius) {
+		if(squirrelGame.cast.castRadius != 0) {
+			Est.oldCastRadius = squirrelGame.cast.castRadius;
+		}
+		squirrelGame.cast.castRadius = 0;
+	}
+	if(settings.instantCast) {
+		if(squirrelGame.cast.castTime != 0) {
+			Est.oldCastTime = squirrelGame.cast.castTime;
+		}
+		squirrelGame.cast.castTime = 0;
+	}
+
+	var perkController = Hs.perkController;
+	if(settings.infinitePerksClothes) {
+		var i = 0;
+		while(i < perkController.perksClothes.length)
+		{
+			var perk = perkController.perksClothes[i];
+			try {
+				perk.currentCooldown = 0;
+				perk.activationCount = 0;
+			} catch(e:Dynamic) {};
+			i++;
+		}
+	}
+	if(settings.infinitePerksHare) {
+		var i = 0;
+		while(i < perkController.perksHare.length)
+		{
+			var perk = perkController.perksHare[i];
+			try {
+				perk.currentCooldown = 0;
+				perk.activationCount = 0;
+			} catch(e:Dynamic) {};
+			i++;
+		}
+	}
+	if(settings.infinitePerksCharacter) {
+		var i = 0;
+		while(i < perkController.perksCharacter.length)
+		{
+			var perk = perkController.perksCharacter[i];
+			try {
+				perk.currentCooldown = 0;
+				perk.activationCount = 0;
+			} catch(e:Dynamic) {};
+			i++;
+		}
+	}
+	if(settings.infinitePerksDragon) {
+		var i = 0;
+		while(i < perkController.perksDragon.length)
+		{
+			var perk = perkController.perksDragon[i];
+			try {
+				perk.currentCooldown = 0;
+				perk.activationCount = 0;
+			} catch(e:Dynamic) {};
+			i++;
+		}
+	}
+	if(settings.infinitePerksTotem) {
+		var i = 0;
+		while(i < perkController.perksTotem.length)
+		{
+			var perk = perkController.perksTotem[i];
+			try {
+				perk.currentCooldown = 0;
+				perk.activationCount = 0;
+			} catch(e:Dynamic) {};
+			i++;
+		}
+	}
+	if(settings.infinitePerksShaman) {
+		var i = 0;
+		while(i < perkController.perksShaman.length)
+		{
+			var perk = perkController.perksShaman[i];
+			try {
+				perk.currentCooldown = 0;
+				perk.activationCount = 0;
+			} catch(e:Dynamic) {};
+			i++;
+		}
+	}
+
+	var ControllerHeroLocal = Type.resolveClass("controllers.ControllerHeroLocal");
 	if(settings.disableKickTimer) {
-		var ControllerHeroLocal = Type.resolveClass("controllers.ControllerHeroLocal");
 		ControllerHeroLocal.resetKickTimer();
 	}
+
 	return true;
 });
 
