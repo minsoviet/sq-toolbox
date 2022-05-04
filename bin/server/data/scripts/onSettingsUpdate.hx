@@ -67,6 +67,12 @@ if(squirrelGame != null) {
 			if(Reflect.hasField(Est, "oldCastRadius")) {
 				squirrelGame.cast.castRadius = Est.oldCastRadius;
 			}
+			if(Reflect.hasField(Est, "oldRunRadius")) {
+				squirrelGame.cast.runCastRadius = Est.oldRunRadius;
+			}
+			if(Reflect.hasField(Est, "oldTelekinezRadius")) {
+				squirrelGame.cast.telekinezRadius = Est.oldTelekinezRadius;
+			}
 		}
 	}
 	if(isChanged("instantCast", null)) {
@@ -74,6 +80,9 @@ if(squirrelGame != null) {
 			Est.oldCastTime = squirrelGame.cast.castTime;
 			squirrelGame.cast.castTime = 0;
 		} else {
+			if(Reflect.hasField(Est, "oldRunCast")) {
+				Hs.useRunningCast = Est.oldRunCast;
+			}
 			if(Reflect.hasField(Est, "oldCastTime")) {
 				squirrelGame.cast.castTime = Est.oldCastTime;
 			}

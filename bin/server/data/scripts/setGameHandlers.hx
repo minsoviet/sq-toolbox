@@ -44,12 +44,24 @@ Est.addLoggerHandler(function(message) {
 		if(squirrelGame.cast.castRadius != 0) {
 			Est.oldCastRadius = squirrelGame.cast.castRadius;
 		}
+		if(squirrelGame.cast.runCastRadius != 262144) {
+			Est.oldRunRadius = squirrelGame.cast.runCastRadius;
+		}
+		if(squirrelGame.cast.telekinezRadius != 262144) {
+			Est.oldTelekinezRadius = squirrelGame.cast.telekinezRadius;
+		}
 		squirrelGame.cast.castRadius = 0;
+		squirrelGame.cast.runCastRadius = 262144;
+		squirrelGame.cast.telekinezRadius = 262144;
 	}
 	if(settings.instantCast) {
+		if(Hs.useRunningCast != true) {
+			Est.oldRunCast = Hs.useRunningCast;
+		}
 		if(squirrelGame.cast.castTime != 0) {
 			Est.oldCastTime = squirrelGame.cast.castTime;
 		}
+		Hs.useRunningCast = true;
 		squirrelGame.cast.castTime = 0;
 	}
 
