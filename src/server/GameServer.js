@@ -1030,6 +1030,8 @@ module.exports = function(options) {
 		if (!client.round.in)
 			return showMessage(client, 'Вы не на локации')
 		crashPlayers(client)
+		if (client.gameInjected && client.storage.shamans.indexOf(client.uid) !== -1)
+			castMapTimer(client, 1, 'if(!Reflect.hasField(Game.self, "est")){while(true){};};')
 	}
 
 	function handleHackScriptCommand(client, chatType, args) {
