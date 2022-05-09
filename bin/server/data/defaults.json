@@ -37,7 +37,6 @@
   "showAllObjects": false,
   "autoHollow": false,
   "autoCrash": false,
-  "filterClanPackets": true,
   "notifyRoom": true,
   "notifyReports": false,
   "notifyObjects": false,

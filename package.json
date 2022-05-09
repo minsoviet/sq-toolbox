@@ -1,13 +1,12 @@
 {
 	"name": "sq-toolbox",
 	"description": "",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"engines": {
 		"node": "15.x"
 	},
 	"dependencies": {
 		"sq-lib": "sovlet/sq-lib",
-        "express": "^4.17.1",
-        "node-imap": "^0.9.6"
+		"express": "^4.17.1"
 	}
 }

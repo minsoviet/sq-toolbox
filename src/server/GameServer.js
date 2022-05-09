@@ -321,7 +321,7 @@ module.exports = function(options) {
 			in: false
 		}
 		Logger.info('server', `Вы вошли как ${getPlayerMention(client, client.uid)}`)
-		showMessage(client, 'Для полной активации функций нужно попасть на локацию.')
+		showMessage(client, 'Для полной активации функций нужно попасть на локацию')
 	}
 
 	function handleLoginServerPacket(client, packet, buffer) {
@@ -342,10 +342,13 @@ module.exports = function(options) {
 	function handleNonSelfInfoServerPacket(client, mask, player) {
 		client.players[player.uid] = Object.assign(client.players[player.uid] || {}, player)
 		let fullPlayer = client.players[player.uid]
-		if (client.settings.noModerators && 'moderator' in player) {
-			if ('name' in player)
-				player.name = player.name + ' [М]'
-			player.moderator = 0
+		if (client.settings.noModerators) {
+			if (fullPlayer.moderator) {
+				if ('moderator' in player)
+					player.moderator = 0
+				if ('name' in player)
+					player.name = player.name + ' [М]'
+			}
 		}
 		return false
 	}
@@ -740,26 +743,6 @@ module.exports = function(options) {
 		return false
 	}
 
-	function handleClanInfoServerPacket(client, packet, buffer) {
-		let {
-			mask,
-			data
-		} = packet.data
-		if (!('settings' in client) || !client.settings.filterClanPackets)
-			return false
-		if (mask !== 4096)
-			return false
-		if (data.length !== 1)
-			return false 
-		if (!('player' in client) || data[0].id !== client.player.clan_id)
-			return false
-		let time = getTime()
-		if ('lastSelfClanInfo' in client.storage && Math.abs(time - client.storage.lastSelfClanInfo) < 30)
-			return true
-		client.storage.lastSelfClanInfo = time
-		return false
-	}
-
 	function handleRoundShamanServerPacket(client, packet, buffer) {
 		let {
 			playerId,
@@ -855,10 +838,6 @@ module.exports = function(options) {
 			 case 'PacketRoundCastEnd':
 				if (handleRoundCastEndServerPacket(client, packet, buffer))
 					return false
-				break
-			case 'PacketClanInfo':
-				if (handleClanInfoServerPacket(client, packet, buffer))
-					return false
 		}
 		client.sendPacket(packet)
 		while (client.defer.length > 0)
@@ -923,7 +902,7 @@ module.exports = function(options) {
 							runScript(client, true, scripts.setMenu)
 							runScript(client, true, scripts.onSettingsUpdate)
 							runScript(client, true, scripts.onNewRound)
-							showMessage(client, 'Успешное внедрение в игру, все функции активны.')
+							showMessage(client, 'Успешное внедрение в игру, все функции активны')
 					}
 					break
 				case 'updateSetting':
@@ -966,11 +945,11 @@ module.exports = function(options) {
 	function handlePlayerSearchCommand(client, chatType, args) {
 		let playerId = parseInt(args[0], 10)
 		if (isNaN(playerId))
-			return showMessage(client, 'Неправильный синтаксис.')
+			return showMessage(client, 'Неправильный синтаксис')
 		client.sendData('PacketChatMessage', {
 			chatType: chatType,
 			playerId: playerId,
-			message: '<span class=\'color3\'>Я читерил меня искали.</span>'
+			message: '<span class=\'color3\'>Я читерил меня искали</span>'
 		})
 	}
 
@@ -987,7 +966,7 @@ module.exports = function(options) {
 				handlePlayerSearchCommand(client, chatType, args)
 				break
 			default:
-				showMessage(client, 'Неизвестная подкоманда.')
+				showMessage(client, 'Неизвестная подкоманда')
 		}
 	}
 
@@ -995,9 +974,15 @@ module.exports = function(options) {
 		let coins = parseInt(args[0], 10)
 		let nuts = parseInt(args[1], 10)
 		if (isNaN(coins) || isNaN(nuts))
-			return showMessage(client, 'Неправильный синтаксис.')
+			return showMessage(client, 'Неправильный синтаксис')
 		client.proxy.sendData('CLAN_DONATION', coins, nuts)
-		showMessage(client, `В клан внесено ${coins} монет ${nuts} орехов.`)
+		showMessage(client, `В клан внесено ${coins} монет ${nuts} орехов`)
+	}
+
+	function handleClanRenameCommand(client, chatType, args) {
+		let name = args.join(' ')
+		client.proxy.sendData('CLAN_RENAME', name)
+		showMessage(client, `Клан теперь называется ${name}`)
 	}
 
 	function handleClanCommand(client, chatType, args) {
@@ -1007,32 +992,36 @@ module.exports = function(options) {
 			case undefined:
 				showMessage(client, 'Подкоманды:\n' +
 					'\n' +
-					'.clan donate [монеты] [орехи] — внести в клан монеты/орехи')
+					'.clan donate [монеты] [орехи] — внести в клан монеты/орехи\n' +
+					'.clan rename [имя] — переименовать клан')
 				break
 			case 'donate':
 				handleClanDonateCommand(client, chatType, args)
 				break
+			case 'rename':
+				handleClanRenameCommand(client, chatType, args)
+				break
 			default:
-				showMessage(client, 'Неизвестная подкоманда.')
+				showMessage(client, 'Неизвестная подкоманда')
 		}
 	}
 
 	function handleHackOlympicCommand(client, chatType, args) {
 		if (client.round.in)
-			return showMessage(client, 'Вы уже на локации.')
+			return showMessage(client, 'Вы уже на локации')
 		client.proxy.sendData('PLAY', 15, 0)
 	}
 
 	function handleHackSkillCommand(client, chatType, args) {
 		if (!client.round.in)
-			return showMessage(client, 'Вы не на локации.')
+			return showMessage(client, 'Вы не на локации')
 		client.storage.cancelNextSkill = true
-		showMessage(client, 'Следующая способность будет багнута отменой.')
+		showMessage(client, 'Следующая способность будет багнута отменой')
 	}
 
 	function handleHackCrashCommand(client, chatType, args) {
 		if (!client.round.in)
-			return showMessage(client, 'Вы не на локации.')
+			return showMessage(client, 'Вы не на локации')
 		crashPlayers(client)
 	}
 
@@ -1045,7 +1034,7 @@ module.exports = function(options) {
 					'\n' +
 					'.hack olympic — локация "Стадион"\n' +
 					'.hack skill — баг отмены способности\n' +
-					'.hack crash — баг ошибки объекта')
+					'.hack crash — невалидный объект')
 				break
 			case 'olympic':
 				handleHackOlympicCommand(client, chatType, args)
@@ -1057,7 +1046,7 @@ module.exports = function(options) {
 				handleHackCrashCommand(client, chatType, args)
 				break
 			default:
-				showMessage(client, 'Неизвестная подкоманда.')
+				showMessage(client, 'Неизвестная подкоманда')
 		}
 	}
 
@@ -1096,16 +1085,16 @@ module.exports = function(options) {
 				handleDebugDumpLoginCommand(client, chatType, args)
 				break
 			default:
-				showMessage(client, 'Неизвестная подкоманда.')
+				showMessage(client, 'Неизвестная подкоманда')
 		}
 	}
 
 	function handleDebugScriptCommand(client, chatType, args) {
 		let file = options.local.scriptsDir + '/' + args.shift()
 		if (!client.storage.gameInjected)
-			return showMessage(client, 'Не удалось запустить скрипт.')
+			return showMessage(client, 'Не удалось запустить скрипт')
 		if (!fs.existsSync(file))
-			return showMessage(client, 'Скрипт не найден.')
+			return showMessage(client, 'Скрипт не найден')
 		let script = fs.readFileSync(file, 'utf8')
 		if (file.endsWith('.js'))
 			runExternalScript(client, script)
@@ -1130,7 +1119,7 @@ module.exports = function(options) {
 				handleDebugScriptCommand(client, chatType, args)
 				break
 			default:
-				showMessage(client, 'Неизвестная подкоманда.')
+				showMessage(client, 'Неизвестная подкоманда')
 		}
 	}
 
@@ -1164,7 +1153,7 @@ module.exports = function(options) {
 				handleDebugCommand(client, chatType, args)
 				break
 			default:
-				showMessage(client, 'Неизвестная команда.')
+				showMessage(client, 'Неизвестная команда')
 		}
 		return true
 	}
@@ -1186,6 +1175,9 @@ module.exports = function(options) {
 			case 'ROUND_COMMAND':
 				if (handleRoundCommandClientPacket(client, packet, buffer))
 					return false
+				break
+			case 'CLAN_REQUEST':
+				packet.data.mask = -1;
 				break
 			case 'CHAT_MESSAGE':
 				if (handleChatMessageClientPacket(client, packet, buffer))
