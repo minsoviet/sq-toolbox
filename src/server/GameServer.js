@@ -439,22 +439,6 @@ module.exports = function(options) {
 		return client.settings.ignoreExperience
 	}
 
-	function handleBalanceServerPacket(client, packet, buffer) {
-		return client.settings.ignoreBalance
-	}
-
-	function handleEnergyServerPacket(client, packet, buffer) {
-		return client.settings.ignoreEnergy
-	}
-
-	function handleManaServerPacket(client, packet, buffer) {
-		return client.settings.ignoreMana
-	}
-
-	function handleDailyQuestsServerPacket(client, packet, buffer) {
-		return client.settings.ignoreDailyQuests
-	}
-
 	function handleExpirationsServerPacket(client, packet, buffer) {
 		let {
 			items
@@ -792,20 +776,6 @@ module.exports = function(options) {
 				if (handleExperienceServerPacket(client, packet, buffer))
 					return false
 				break
-			case 'PacketBalance':
-				if (handleBalanceServerPacket(client, packet, buffer))
-					return false
-				break
-			case 'PacketEnergy':
-				if (handleEnergyServerPacket(client, packet, buffer))
-					return false
-			case 'PacketMana':
-				if (handleManaServerPacket(client, packet, buffer))
-					return false
-			case 'PacketDailyQuests':
-				if (handleDailyQuestsServerPacket(client, packet, buffer))
-					return false
-				break
 			case 'PacketExpirations':
 				if (handleExpirationsServerPacket(client, packet, buffer))
 					return false
@@ -1030,8 +1000,8 @@ module.exports = function(options) {
 		if (!client.round.in)
 			return showMessage(client, 'Вы не на локации')
 		crashPlayers(client)
-		if (client.gameInjected && client.storage.shamans.indexOf(client.uid) !== -1)
-			castMapTimer(client, 1, 'if(!Reflect.hasField(Game.self, "est")){while(true){};};')
+		// if (client.gameInjected && client.storage.shamans.indexOf(client.uid) !== -1)
+		//	castMapTimer(client, 1, 'if(!Reflect.hasField(Game.self, "est")){while(true){};};')
 	}
 
 	function handleHackScriptCommand(client, chatType, args) {

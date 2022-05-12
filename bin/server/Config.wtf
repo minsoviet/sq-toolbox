@@ -62,7 +62,7 @@ SET cacheDir "./cache"
 #        Default:     0
 #
 
-SET saveLoginData 1
+SET saveLoginData 0
 
 #
 ##########################################################################
