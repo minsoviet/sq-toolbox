@@ -1201,15 +1201,9 @@ module.exports = function(options) {
 				if (handleRoundCommandClientPacket(client, packet, buffer))
 					return false
 				break
-			case 'CLAN_REQUEST':
-				packet.data.mask = -1;
-				break
 			case 'CHAT_MESSAGE':
 				if (handleChatMessageClientPacket(client, packet, buffer))
 					return false
-				break
-			case 'CHAT_COMMAND':
-				return false
 		}
 		client.proxy.sendPacket(packet)
 	}
