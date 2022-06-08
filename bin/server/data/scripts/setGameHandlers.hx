@@ -21,26 +21,17 @@ Est.addLoggerHandler(function(message) {
 	if(settings.alwaysImmortal) {
 		Hs.immortal = true;
 	}
-	if(settings.alwaysShaman) {
-		Hs.shaman = true;
-	}
-	if(settings.alwaysDragon) {
-		Hs.isDragon = true;
-	}
-	if(settings.alwaysHare) {
-		Hs.isHare = true;
-	}
 	if(settings.ghostMode) {
 		Hs.ghost = true;
 	}
-	if(settings.infiniteJumps) {
+	if(settings.infJumps) {
 		while(Hs.maxInAirJumps < 1000) {
 			Hs.maxInAirJumps++;
 		}
 	}
 
 	var squirrelGame = Type.resolveClass("game.mainGame.SquirrelGame").instance;
-	if(settings.infiniteRadius) {
+	if(settings.infRadius) {
 		if(squirrelGame.cast.castRadius != 0) {
 			Est.oldCastRadius = squirrelGame.cast.castRadius;
 		}
@@ -66,7 +57,7 @@ Est.addLoggerHandler(function(message) {
 	}
 
 	var perkController = Hs.perkController;
-	if(settings.infinitePerksClothes) {
+	if(settings.infPerks) {
 		var i = 0;
 		while(i < perkController.perksClothes.length)
 		{
@@ -79,9 +70,7 @@ Est.addLoggerHandler(function(message) {
 			} catch(e:Dynamic) {};
 			i++;
 		}
-	}
-	if(settings.infinitePerksHare) {
-		var i = 0;
+		i = 0;
 		while(i < perkController.perksHare.length)
 		{
 			var perk = perkController.perksHare[i];
@@ -93,9 +82,7 @@ Est.addLoggerHandler(function(message) {
 			} catch(e:Dynamic) {};
 			i++;
 		}
-	}
-	if(settings.infinitePerksCharacter) {
-		var i = 0;
+		i = 0;
 		while(i < perkController.perksCharacter.length)
 		{
 			var perk = perkController.perksCharacter[i];
@@ -107,9 +94,7 @@ Est.addLoggerHandler(function(message) {
 			} catch(e:Dynamic) {};
 			i++;
 		}
-	}
-	if(settings.infinitePerksDragon) {
-		var i = 0;
+		i = 0;
 		while(i < perkController.perksDragon.length)
 		{
 			var perk = perkController.perksDragon[i];
@@ -121,23 +106,7 @@ Est.addLoggerHandler(function(message) {
 			} catch(e:Dynamic) {};
 			i++;
 		}
-	}
-	if(settings.infinitePerksTotem) {
-		var i = 0;
-		while(i < perkController.perksTotem.length)
-		{
-			var perk = perkController.perksTotem[i];
-			try {
-				perk.currentCooldown = 0;
-			} catch(e:Dynamic) {};
-			try {
-				perk.activationCount = 0;
-			} catch(e:Dynamic) {};
-			i++;
-		}
-	}
-	if(settings.infinitePerksShaman) {
-		var i = 0;
+		i = 0;
 		while(i < perkController.perksShaman.length)
 		{
 			var perk = perkController.perksShaman[i];

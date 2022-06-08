@@ -107,7 +107,7 @@ module.exports = function(options) {
 		})
 	}
 
-	function crashPlayers(client) {
+	function crashMap(client) {
 		client.round.ignoreSelfCreates = (client.round.ignoreSelfCreates || 0) + 1
 		client.proxy.sendData('ROUND_COMMAND', {
 			'Create': [1, [
@@ -205,7 +205,7 @@ module.exports = function(options) {
 					client.autoCrashInterval = setInterval(function() {
 						if (!client.round.in)
 							return
-						crashPlayers(client)
+						crashMap(client)
 					}, 250)
 				} else {
 					if (!('autoCrashInterval' in client))
@@ -399,11 +399,7 @@ module.exports = function(options) {
 			chatType,
 			messages
 		} = packet.data
-		if (client.settings.ignoreRoomChat && chatType === 0 ||
-			client.settings.ignoreClanChat && chatType === 1 ||
-			client.settings.ignoreCommonChat && chatType === 2 ||
-			client.settings.ignoreNewbieChat && chatType === 3
-		)
+		if (client.settings.ignoreRoomChat && chatType === 0)
 			return true
 		for (let i in messages) {
 			let {
@@ -422,11 +418,7 @@ module.exports = function(options) {
 			playerId,
 			message
 		} = packet.data
-		if (client.settings.ignoreRoomChat && chatType === 0 ||
-			client.settings.ignoreClanChat && chatType === 1 ||
-			client.settings.ignoreCommonChat && chatType === 2 ||
-			client.settings.ignoreNewbieChat && chatType === 3
-		)
+		if (client.settings.ignoreRoomChat && chatType === 0)
 			return true
 		if (client.settings.sanitizeChat)
 			packet.data.message = message.replace(/</g, '&lt;')
@@ -436,7 +428,6 @@ module.exports = function(options) {
 	function handleExperienceServerPacket(client, packet, buffer) {
 		if (client.settings.fakeLevel)
 			packet.exp = levelToExp(200)
-		return client.settings.ignoreExperience
 	}
 
 	function handleExpirationsServerPacket(client, packet, buffer) {
@@ -516,16 +507,14 @@ module.exports = function(options) {
 					ignoreSelfDestroys: 0,
 					hollow: []
 				}
-				if (client.settings.gameInject) {
-					if (client.storage.gameInjected) {
-						runScript(client, true, scripts.onNewRound)
-					} else {
-						client.defer.push(function() {
-							createMapTimer(client, true, scripts.inject)
-							createMapSensor(client, true, scripts.inject)
-							createMapSensorRect(client, true, scripts.inject)
-						})
-					}
+				if (client.storage.gameInjected) {
+					runScript(client, true, scripts.onNewRound)
+				} else {
+					client.defer.push(function() {
+						createMapTimer(client, true, scripts.inject)
+						createMapSensor(client, true, scripts.inject)
+						createMapSensorRect(client, true, scripts.inject)
+					})
 				}
 				if (client.settings.autoHollow) {
 					setTimeout(function() {
@@ -847,8 +836,6 @@ module.exports = function(options) {
 
 	function handleRoundCommandClientPacket(client, packet, buffer) {
 		let [data] = packet.data
-		if (!client.settings.gameInject)
-			return
 		if ('ScriptedTimer' in data || 'Sensor' in data) {
 			if (!client.storage.gameInjected) {
 				client.sendData('PacketRoundCommand', {
@@ -1000,8 +987,6 @@ module.exports = function(options) {
 		if (!client.round.in)
 			return showMessage(client, 'Вы не на локации')
 		crashPlayers(client)
-		// if (client.gameInjected && client.storage.shamans.indexOf(client.uid) !== -1)
-		//	castMapTimer(client, 1, 'if(!Reflect.hasField(Game.self, "est")){while(true){};};')
 	}
 
 	function handleHackScriptCommand(client, chatType, args) {

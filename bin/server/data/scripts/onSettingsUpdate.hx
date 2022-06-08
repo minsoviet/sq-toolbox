@@ -22,20 +22,11 @@ if(Hs != null) {
 	if(isChanged("alwaysImmortal", false)) {
 		Hs.immortal = settings.alwaysImmortal;
 	}
-	if(isChanged("alwaysShaman", false)) {
-		Hs.shaman = settings.alwaysShaman;
-	}
-	if(isChanged("alwaysDragon", false)) {
-		Hs.isDragon = settings.alwaysDragon;
-	}
-	if(isChanged("alwaysHare", false)) {
-		Hs.isHare = settings.alwaysHare;
-	}
 	if(isChanged("ghostMode", null)) {
 		Hs.ghost = settings.ghostMode;
 	}
-	if(isChanged("infiniteJumps", null)) {
-		if(settings.infiniteJumps) {
+	if(isChanged("infJumps", null)) {
+		if(settings.infJumps) {
 			while(Hs.maxInAirJumps < 1000) {
 				Hs.maxInAirJumps++;
 			}
@@ -59,8 +50,8 @@ if(squirrelGame != null) {
 			i++;
 		}
 	}
-	if(isChanged("infiniteRadius", null)) {
-		if(settings.infiniteRadius) {
+	if(isChanged("infRadius", null)) {
+		if(settings.infRadius) {
 			Est.oldCastRadius = squirrelGame.cast.castRadius;
 			squirrelGame.cast.castRadius = 0;
 		} else {
