@@ -492,9 +492,7 @@ module.exports = function(options) {
 				client.round = {
 					in: false,
 					players: client.room.players.slice(),
-					created: {},
-					ignoreSelfCreates: 0,
-					ignoreSelfDestroys: 0
+					mapObjects: {}
 				}
 				break
 			case PacketServer.ROUND_PLAYING:
@@ -502,9 +500,7 @@ module.exports = function(options) {
 				client.round = {
 					in: true,
 					players: client.room.players.slice(),
-					created: {},
-					ignoreSelfCreates: 0,
-					ignoreSelfDestroys: 0,
+					mapObjects: {},
 					hollow: []
 				}
 				if (client.storage.gameInjected) {
@@ -676,7 +672,7 @@ module.exports = function(options) {
 				return true
 			} else {
 				for (player of client.round.players)
-					client.round.created[player] = (client.round.created[player] || 0) + 1
+					client.round.mapObjects[player] = (client.round.mapObjects[player] || 0) + 1
 			}
 		}
 		if ('Destroy' in dataJson) {
@@ -684,7 +680,7 @@ module.exports = function(options) {
 				client.round.ignoreSelfDestroys--
 				return true
 			}
-			if ((client.settings.ignoreInvalidObjects && !isValidDestroy(dataJson.Destroy)) || (client.settings.createBeforeDestroy && !client.round.created[playerId]) || (client.settings.preserveMapObjects && 'mapObjects' in client.round && dataJson.Destroy[0] < client.round.mapObjects)) {
+			if ((client.settings.ignoreInvalidObjects && !isValidDestroy(dataJson.Destroy)) || (client.settings.createBeforeDestroy && !client.round.mapObjects[playerId]) || (client.settings.preserveMapObjects && 'mapObjects' in client.round && dataJson.Destroy[0] < client.round.mapObjects)) {
 				if (client.settings.logBadObjects) {
 					Logger.info('server', `${getPlayerMention(client, playerId)} пытался удалить объект ID ${dataJson.Destroy[0].toString()}`)
 				}
@@ -695,8 +691,8 @@ module.exports = function(options) {
 						message: `<span class=\'color3\'>Пытался удалить объект</span> <span class=\'color1\'>ID ${dataJson.Destroy[0].toString()}</span>`
 					})
 				}
-				if (client.round.created[playerId])
-					client.round.created[playerId]--
+				if (client.round.mapObjects[playerId])
+					client.round.mapObjects[playerId]--
 				return true
 			}
 		}
@@ -705,7 +701,7 @@ module.exports = function(options) {
 
 	function handleRoundCastBeginServerPacket(client, packet, buffer) {
 		for (player of client.round.players)
-			client.round.created[player] = (client.round.created[player] || 0) + 1
+			client.round.mapObjects[player] = (client.round.mapObjects[player] || 0) + 1
 		return false
 	}
 
@@ -715,8 +711,8 @@ module.exports = function(options) {
 		} = packet.data
 		if (!success) {
 			for (player of client.round.players) {
-				if (client.round.created[player])
-					client.round.created[player]--
+				if (client.round.mapObjects[player])
+					client.round.mapObjects[player]--
 			}
 		}
 		return false
