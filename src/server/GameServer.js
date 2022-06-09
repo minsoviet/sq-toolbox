@@ -646,9 +646,8 @@ module.exports = function(options) {
 		if ('reportedPlayerId' in dataJson) {
 			if (playerId === client.uid)
 				return false
-			if (client.settings.logReports) {
+			if (client.settings.logReports)
 				Logger.info('server', `${getPlayerMention(client, playerId)} кинул жалобу на ${getPlayerMention(client, dataJson.reportedPlayerId)}`)
-			}
 			if (client.settings.notifyReports) {
 				client.sendData('PacketChatMessage', {
 					chatType: 0,
@@ -660,11 +659,11 @@ module.exports = function(options) {
 				return true
 		}
 		if ('Create' in dataJson) {
-			if (client.settings.ignoreBadObjects && !isValidCreate(dataJson.Create)) {
-				if (playerId === client.uid && client.round.ignoreSelfCreates) {
-					client.round.ignoreSelfCreates--
-					return true
-				}
+			if (playerId === client.uid && client.round.ignoreSelfCreates) {
+				client.round.ignoreSelfCreates--
+				return true
+			}
+			if (client.settings.ignoreInvalidObjects && !isValidCreate(dataJson.Create)) {
 				if (client.settings.logBadObjects)
 					Logger.info('server', `${getPlayerMention(client, playerId)} пытался создать объект Entity ${dataJson.Create[0].toString()}`)
 				if (client.settings.notifyObjects) {
@@ -681,11 +680,11 @@ module.exports = function(options) {
 			}
 		}
 		if ('Destroy' in dataJson) {
-			if (client.settings.ignoreBadObjects && (!isValidDestroy(dataJson.Destroy) || !client.round.created[playerId] || (client.round.mapObjects != undefined && dataJson.Destroy[0] < client.round.mapObjects))) {
-				if (playerId === client.uid && client.round.ignoreSelfDestroys) {
-					client.round.ignoreSelfDestroys--
-					return true
-				}
+			if (playerId === client.uid && client.round.ignoreSelfDestroys) {
+				client.round.ignoreSelfDestroys--
+				return true
+			}
+			if ((client.settings.ignoreInvalidObjects && !isValidDestroy(dataJson.Destroy)) || (client.settings.createBeforeDestroy && !client.round.created[playerId]) || (client.settings.preserveMapObjects && 'mapObjects' in client.round && dataJson.Destroy[0] < client.round.mapObjects)) {
 				if (client.settings.logBadObjects) {
 					Logger.info('server', `${getPlayerMention(client, playerId)} пытался удалить объект ID ${dataJson.Destroy[0].toString()}`)
 				}
@@ -696,10 +695,10 @@ module.exports = function(options) {
 						message: `<span class=\'color3\'>Пытался удалить объект</span> <span class=\'color1\'>ID ${dataJson.Destroy[0].toString()}</span>`
 					})
 				}
+				if (client.round.created[playerId])
+					client.round.created[playerId]--
 				return true
 			}
-			if (client.round.created[playerId])
-				client.round.created[playerId]--
 		}
 		return false
 	}
@@ -1048,6 +1047,16 @@ module.exports = function(options) {
 			client.storage.loginData)
 	}
 
+	function handleDebugDumpStorageCommand(client, chatType, args) {
+		if (client.storage.gameInjected)
+			return runExternalScript(client, 'window.prompt("Скопируйте данные сессии.\\n\\nВНИМАНИЕ!!! НИКОМУ НЕ ПЕРЕДАВАЙТЕ ЭТИ ДАННЫЕ", "' + JSON.stringify(client.storage).replace(/\"/g, "'") + '");')
+		showMessage(client, 'ВНИМАНИЕ!!! НИКОМУ НЕ ПЕРЕДАВАЙТЕ ЭТИ ДАННЫЕ!!!\n' +
+			'\n' +
+			'Дамп данных сессии:\n' +
+			'\n' +
+			JSON.stringify(client.storage).replace(/\"/g, "'"))
+	}
+
 	function handleDebugDumpCommand(client, chatType, args) {
 		let cmd = args.shift()
 		switch (cmd) {
@@ -1056,13 +1065,17 @@ module.exports = function(options) {
 				showMessage(client, 'Подкоманды:\n' +
 					'\n' +
 					'.debug dump player — данные профиля\n' +
-					'.debug dump login — данные входа')
+					'.debug dump login — данные входа' +
+					'.debug dump storage — данные хранилища')
 				break
 			case 'player':
 				handleDebugDumpPlayerCommand(client, chatType, args)
 				break
 			case 'login':
 				handleDebugDumpLoginCommand(client, chatType, args)
+				break
+			case 'storage':
+				handleDebugDumpStorageCommand(client, chatType, args)
 				break
 			default:
 				showMessage(client, 'Неизвестная подкоманда')
