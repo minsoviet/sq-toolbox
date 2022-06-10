@@ -56,8 +56,39 @@ Est.addLoggerHandler(function(message) {
 		squirrelGame.cast.castTime = 0;
 	}
 
+	var PerkShamanFactory = Type.resolveClass("game.mainGame.perks.shaman.PerkShamanFactory");
+	var ShamanToolBar = Type.resolveClass("game.mainGame.perks.shaman.ui.ShamanToolBar");
 	var perkController = Hs.perkController;
-	if(settings.infPerks) {
+	if(settings.allPerksShaman) {
+		if(perkController.perksShaman.length < 35) {
+			var i = 0;
+			while(i < PerkShamanFactory.perkCollection.length)
+			{
+				var found = false;
+				var o = 0;
+				while(o < perkController.perksShaman.length)
+				{
+					var perk = perkController.perksShaman[o];
+					if(perk.code == i) {
+						perk.levelFree = 3;
+						perk.levelPaid = 3;
+						found = true;
+						break;
+					}
+					o++;
+				}
+				if(i != 0 && i != 3 && i != 7 && i != 8 && i != 10 && i != 11 && i != 17 && i != 18 && i != 22 && i != 26 && i != 28 && i != 29 && i != 32 && i != 35 && i != 36 && i != 47 && i != 50) {
+					if(!found) {
+						perkController.perksShaman[perkController.perksShaman.length] = Type.createInstance(PerkShamanFactory.perkCollection[i], [Hs, [3, 3]]);
+					}
+				}
+				i++;
+			}
+			ShamanToolBar.hero = Hs;
+		}
+	}
+
+	if(settings.noCdPerks) {
 		var i = 0;
 		while(i < perkController.perksClothes.length)
 		{

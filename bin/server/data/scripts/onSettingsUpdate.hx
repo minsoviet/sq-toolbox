@@ -40,13 +40,14 @@ if(Hs != null) {
 
 var squirrelGame = Type.resolveClass("game.mainGame.SquirrelGame").instance;
 if(squirrelGame != null) {
-	if(isChanged("showAllObjects", null)) {
+	if(isChanged("showSensors", null)) {
 		var gameObjects = squirrelGame.map.gameObjects();
 		var i = 0;
 		while(i < gameObjects.length) {
-			try {
-				gameObjects[i].showDebug = settings.showAllObjects;
-			} catch(e:Dynamic) {};
+			var className = Type.getClassName(Type.getClass(gameObjects[i]));
+			if(className == "game.mainGame.entity.editor.Sensor" || className == "game.mainGame.entity.editor.SensorRect" || className == "game.mainGame.entity.editor.ButtonSensor") {
+				gameObjects[i].showDebug = settings.showSensors;
+			}
 			i++;
 		}
 	}
