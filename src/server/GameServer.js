@@ -202,11 +202,12 @@ module.exports = function(options) {
 				break
 			case 'autoCrash':
 				if (value) {
-					client.autoCrashInterval = setInterval(function() {
+					let autoCrash = function() {
 						if (!client.round.in)
 							return
 						crashMap(client)
-					}, 250)
+					}
+					client.autoCrashInterval = setInterval(autoCrash, 250)
 				} else {
 					if (!('autoCrashInterval' in client))
 						break
@@ -219,13 +220,15 @@ module.exports = function(options) {
 				if (value) {
 					if ('checkModeratorsInterval' in client)
 						break
-					client.checkModeratorsInterval = setInterval(function() {
+					let checkModerators = function() {
 						let moderators = [];
 						for (let moderator of constants.moderators) {
 							moderators.push([moderator])
 						}
 						client.proxy.sendData("REQUEST", moderators, 72)
-					}, 15000)
+					}
+					client.checkModeratorsInterval = setInterval(checkModerators, 15000)
+					checkModerators()
 				} else {
 					if (!('checkModeratorsInterval' in client))
 						break
@@ -378,16 +381,25 @@ module.exports = function(options) {
 	function handleNonSelfInfoServerPacket(client, mask, player) {
 		let oldPlayer = client.players[player.uid]
 		if (constants.moderators.indexOf(player.uid) !== -1 && mask === 72) {
-			if (!oldPlayer || oldPlayer.online != player.online) {
+			let onlineChanged = false
+			if (!oldPlayer) {
+				onlineChanged = player.online
+			} else {
+				onlineChanged = oldPlayer.online !== player.online
+			}
+			if (onlineChanged) {
 				if (player.online && client.settings.warnModerators) {
 					showMessage(client, 'ВНИМАНИЕ!!! БУДЬТЕ ОСТОРОЖНЫ!!!\n' +
 						'\n' +
-						constructPlayerMention(player) + ' в сети!')
+						constructPlayerMention(player) + ' в игре')
 				}
 				if (client.settings.notifyModerators && client.round.in) {
 					let message = '<span class=\'color1\'>Вышел из игры</span>'
-					if (player.online)
+					if (player.online) {
 						message = '<span class=\'name_moderator\'>Вошел в игру</span>'
+						if (!oldPlayer)
+							message = '<span class=\'name_moderator\'>Уже в игре</span>'
+					}
 					client.sendData('PacketChatMessage', {
 						chatType: 0,
 						playerId: player.uid,
@@ -396,8 +408,11 @@ module.exports = function(options) {
 				}
 				if (client.settings.logModerators) {
 					let message = 'вышел из игры'
-					if (player.online)
+					if (player.online) {
 						message = 'вошел в игру'
+						if (!oldPlayer)
+							message = 'уже в игре'
+					}
 					Logger.info('server', `${constructPlayerMention(player)} ${message}`)
 				}
 			}
@@ -693,12 +708,12 @@ module.exports = function(options) {
 			playerId,
 			dataJson
 		} = packet.data
-		if (constants.moderators.indexOf(playerId) !== -1 && !client.round.moderators[playerId]) {
+		if (constants.moderators.indexOf(playerId) !== -1 && client.room.players.indexOf(playerId) === -1 && !client.round.moderators[playerId]) {
 			client.round.moderators[playerId] = true;
 			if (client.settings.warnModerators) {
 				showMessage(client, 'ВНИМАНИЕ!!! БУДЬТЕ ОСТОРОЖНЫ!!!\n' +
 					'\n' +
-					getPlayerMention(client, playerId) + ' в комнате!')
+					getPlayerMention(client, playerId) + ' в комнате')
 			}
 			if (client.settings.notifyModerators) {
 				client.sendData('PacketChatMessage', {

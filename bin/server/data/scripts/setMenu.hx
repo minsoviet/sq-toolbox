@@ -45,11 +45,17 @@ while(i < settingsData.length) {
 
 var Keyboard = Type.resolveClass("flash.ui.Keyboard");
 var KeyboardEvent = Type.resolveClass("flash.events.KeyboardEvent");
-Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
-	if(!e.ctrlKey || e.keyCode != Keyboard.NUMBER_1) {
+Game.stage.addEventListener(KeyboardEvent.KEY_UP, function(e) {
+	if(Game.chat != null && Game.chat.visible) {
+		return;
+	}
+	if(!e.ctrlKey || e.keyCode != Keyboard.M) {
 		return;
 	}
 	var menuDialog = Game.self.est.menu;
-	menuDialog.hide();
-	menuDialog.show();
+	if(menuDialog.visible) {
+		menuDialog.hide();
+	} else {
+		menuDialog.show();
+	}
 });
