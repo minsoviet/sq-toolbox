@@ -205,6 +205,7 @@ Game.stage.addEventListener(KeyboardEvent.KEY_UP, function(e) {
 		}
 		if(e.keyCode == Keyboard.T) {
 			if(Hs.isDead) {
+				var PacketClient = Type.resolveClass("protocol.PacketClient");
 				Game.self.est.sendData(PacketClient.ROUND_RESPAWN);
 			} else {
 				Hs.dieReason = Hero.DIE_REPORT;
