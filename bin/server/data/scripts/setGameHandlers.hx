@@ -60,27 +60,35 @@ Est.addLoggerHandler(function(message) {
 	var ShamanToolBar = Type.resolveClass("game.mainGame.perks.shaman.ui.ShamanToolBar");
 	var perkController = Hs.perkController;
 	if(settings.allPerksShaman) {
-		if(perkController.perksShaman.length < 35) {
+		if(perkController.perksShaman.length < 21) {
 			var i = 0;
 			while(i < PerkShamanFactory.perkCollection.length)
 			{
-				var found = false;
+				var found = -1;
 				var o = 0;
 				while(o < perkController.perksShaman.length)
 				{
 					var perk = perkController.perksShaman[o];
 					if(perk.code == i) {
-						perk.levelFree = 3;
-						perk.levelPaid = 3;
-						found = true;
+						found = o;
 						break;
 					}
 					o++;
 				}
-				if(i != 0 && i != 3 && i != 7 && i != 8 && i != 10 && i != 11 && i != 17 && i != 18 && i != 22 && i != 26 && i != 28 && i != 29 && i != 32 && i != 35 && i != 36 && i != 47 && i != 50) {
-					if(!found) {
-						perkController.perksShaman[perkController.perksShaman.length] = Type.createInstance(PerkShamanFactory.perkCollection[i], [Hs, [3, 3]]);
+				var catchyPassivePerk = i == 0 || i == 3 || i == 7 || i == 8 || i == 10 || i == 11 || i == 17 || i == 18 || i == 22 || i == 26 || i == 28 || i == 29 || i == 32 || i == 35 || i == 36 || i == 47 || i == 50;
+				var notWorkingPerk = i == 1 || i == 4 || i == 12 || i == 13 || i == 14 || i == 15 || i == 16 || i == 25 || i == 31 || i == 33 || i == 37 || i == 43 || i == 44 || i == 51;
+				if(found != -1 || (!catchyPassivePerk && !notWorkingPerk)) {
+					if(found == -1) {
+						found = perkController.perksShaman.length;
+					} else {
+						perkController.perksShaman[found].dispose();
 					}
+					var perkClass = PerkShamanFactory.perkCollection[i];
+					var perk = Type.createInstance(perkClass, [Hs, [3, 3]]);
+					if(Hs.shaman && !PerkShamanFactory.perkData[perkClass].active) {
+						perk.active = true;
+					}
+					perkController.perksShaman[found] = perk;
 				}
 				i++;
 			}

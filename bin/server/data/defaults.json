@@ -22,7 +22,9 @@
   "ignoreRoomChat": false,
   "showSensors": false,
   "autoHollow": false,
+  "autoSurrender": false,
   "autoCrash": false,
+  "warnModerators": false,
   "notifyRoom": true,
   "notifyReports": false,
   "notifyObjects": false,
@@ -30,6 +32,6 @@
   "logRoom": true,
   "logReports": true,
   "logBadObjects": true,
-  "logModerators": true,
+  "logModerators": false,
   "debugMode": false
 }

@@ -23,15 +23,29 @@
         ["ignoreRoomChat", "Игн. игровой чат"],
         ["showSensors", "Отобр. сенсоры"],
         ["autoHollow", "Авт. заход. в дупло"],
+        ["autoSurrender", "Авт. капитулировать"],
         ["autoCrash", "Авт. выкидывать игр."],
+        ["warnModerators", "Предупр. о модер-ах"],
         ["notifyRoom", "Увед. о комнате"],
         ["notifyReports", "Увед. о жалобах"],
         ["notifyObjects", "Увед. об объектах"],
-        ["notifyModerators", "Увед. о модераторах"],
+        ["notifyModerators", "Увед. о модер-ах"],
         ["logRoom", "Лог. комнату"],
         ["logReports", "Лог. жалобы"],
         ["logBadObjects", "Лог. объекты"],
-        ["logModerators", "Лог. модераторов"],
+        ["logModerators", "Лог. модер-ов"],
         ["debugMode", "Режим отладки"]
+    ],
+    "moderators": [
+        7,
+        22,
+        125330,
+        427140,
+        1452374,
+        4895807,
+        9419675,
+        9479297,
+        11231704,
+        17986739
     ]
 }
