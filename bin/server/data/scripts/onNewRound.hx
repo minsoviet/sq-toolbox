@@ -1,15 +1,16 @@
 var settings = Est.settings;
 
-var squirrelGame = Type.resolveClass("game.mainGame.SquirrelGame").instance;
-if(squirrelGame != null) {
-	var gameObjects = squirrelGame.map.gameObjects();
+var Hs = Hero.self;
+if(Hs != null) {
+	var gameObjects = Hs.game.map.gameObjects();
 	Est.sendData(Est.packetId, JSON.stringify({est: ["updateData", "round.mapObjects", gameObjects.length]}));
-	if(settings.showAllObjects) {
+	if(settings.showSensors) {
 		var i = 0;
 		while(i < gameObjects.length) {
-			try {
-				gameObjects[i].showDebug = settings.showAllObjects;
-			} catch(e:Dynamic) {};
+			var className = Type.getClassName(Type.getClass(gameObjects[i]));
+			if(className == "game.mainGame.entity.editor.Sensor" || className == "game.mainGame.entity.editor.SensorRect") {
+				gameObjects[i].showDebug = true;
+			}
 			i++;
 		}
 	}

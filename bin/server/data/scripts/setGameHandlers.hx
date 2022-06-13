@@ -1,23 +1,17 @@
-Est.addLoggerHandler(function(message) {
-	var isIn = message.indexOf("Received server packet [object PacketRound") != -1;
-	var isOut = message.indexOf("Sending packet with type") != -1 && message.indexOf(", ROUND_") != -1;
-	if(!isIn && !isOut) {
-		return;
-	}
-
+function onAnyUpdate(dt) {
 	var Gs = Game.self;
 	var Est = Gs.est;
-
 	var settings = Est.settings;
 	if(settings == null) {
 		return;
 	}
-
 	var Hs = Hero.self;
 	if(Hs == null) {
+		if(settings.noCastClear && Reflect.hasField(Est, "castClearSetup")) {
+			Est.castClearSetup = false;
+		}
 		return;
 	}
-
 	if(settings.alwaysImmortal) {
 		Hs.immortal = true;
 	}
@@ -29,37 +23,34 @@ Est.addLoggerHandler(function(message) {
 			Hs.maxInAirJumps++;
 		}
 	}
-
-	var squirrelGame = Type.resolveClass("game.mainGame.SquirrelGame").instance;
 	if(settings.infRadius) {
-		if(squirrelGame.cast.castRadius != 0) {
-			Est.oldCastRadius = squirrelGame.cast.castRadius;
+		if(Hs.game.cast.castRadius != 0) {
+			Est.oldCastRadius = Hs.game.cast.castRadius;
 		}
-		if(squirrelGame.cast.runCastRadius != 262144) {
-			Est.oldRunRadius = squirrelGame.cast.runCastRadius;
+		if(Hs.game.cast.runCastRadius != 262144) {
+			Est.oldRunRadius = Hs.game.cast.runCastRadius;
 		}
-		if(squirrelGame.cast.telekinezRadius != 262144) {
-			Est.oldTelekinezRadius = squirrelGame.cast.telekinezRadius;
+		if(Hs.game.cast.telekinezRadius != 262144) {
+			Est.oldTelekinezRadius = Hs.game.cast.telekinezRadius;
 		}
-		squirrelGame.cast.castRadius = 0;
-		squirrelGame.cast.runCastRadius = 262144;
-		squirrelGame.cast.telekinezRadius = 262144;
+		Hs.game.cast.castRadius = 0;
+		Hs.game.cast.runCastRadius = 262144;
+		Hs.game.cast.telekinezRadius = 262144;
 	}
 	if(settings.instantCast) {
 		if(Hs.useRunningCast != true) {
 			Est.oldRunCast = Hs.useRunningCast;
 		}
-		if(squirrelGame.cast.castTime != 0) {
-			Est.oldCastTime = squirrelGame.cast.castTime;
+		if(Hs.game.cast.castTime != 0) {
+			Est.oldCastTime = Hs.game.cast.castTime;
 		}
 		Hs.useRunningCast = true;
-		squirrelGame.cast.castTime = 0;
+		Hs.game.cast.castTime = 0;
 	}
-
 	var PerkShamanFactory = Type.resolveClass("game.mainGame.perks.shaman.PerkShamanFactory");
 	var ShamanToolBar = Type.resolveClass("game.mainGame.perks.shaman.ui.ShamanToolBar");
 	var perkController = Hs.perkController;
-	if(settings.allPerksShaman) {
+	if(settings.allShamanPerks) {
 		if(perkController.perksShaman.length < 21) {
 			var i = 0;
 			while(i < PerkShamanFactory.perkCollection.length)
@@ -95,7 +86,6 @@ Est.addLoggerHandler(function(message) {
 			ShamanToolBar.hero = Hs;
 		}
 	}
-
 	if(settings.noCdPerks) {
 		var i = 0;
 		while(i < perkController.perksClothes.length)
@@ -159,20 +149,112 @@ Est.addLoggerHandler(function(message) {
 		}
 	}
 
+	var castObject = Hs.game.cast.castObject;
+	if(castObject != null) {
+		var EntityFactory = Type.resolveClass("game.mainGame.entity.EntityFactory");
+		var entityId = EntityFactory.getId(castObject);
+		if(!Reflect.hasField(Est, "lastCastEntityId") || Est.lastCastEntityId != entityId) {
+			Est.lastCastEntityId = entityId;
+			Est.sendData(Est.packetId, JSON.stringify({est: ["updateData", "storage.lastCastEntityId", entityId]}));
+		}
+	}
+
+	if(!Reflect.hasField(Est, "castClearSetup") || !Est.castClearSetup) {
+		function onCastEvent(e) {
+			var Cast = Type.resolveClass("game.mainGame.Cast");
+			var settings = Game.self.est.settings;
+			if(e == Cast.CAST_DROP || e == Cast.CAST_CANCEL) {
+				Est.setTimeout(function(dt) {
+					if(Hero.self.game.cast.castObject == null) {
+						if(Reflect.hasField(Game.self.est, "hackCastEntityId")) {
+							Game.self.est.sendData(Game.self.est.packetId, JSON.stringify({est: ["updateData", "storage.hackCastEntityId", -1]}));
+						}
+					}
+				}, 1);
+				return;
+			}
+			if(e == Cast.CAST_COMPLETE) {
+				if(settings.noCastClear) {
+					var Screens = Type.resolveClass("screens.Screens");
+					if(Type.getClassName(Type.getClass(Screens.active)) == "screens.ScreenGame") {
+						throw "";
+					}
+				}
+			}
+		}
+		Hs.game.cast.listen(onCastEvent);
+		Est.castClearSetup = true;
+	}
+	if(settings.allShamanItems) {
+		var shamanTools = Hs.game.map.shamanTools;
+		var createdVar = false;
+		var items = [0, 2, 4, 5, 6, 7, 8, 42, 47, 53];
+		var i = 0;
+		while(i < items.length) {
+			if(shamanTools.indexOf(items[i]) == -1) {
+				if(!createdVar) {
+					Est.addedShamanToolsItems = [];
+					createdVar = true;
+				}
+				Est.addedShamanToolsItems.push(items[i]);
+				shamanTools.push(items[i]);
+			}
+			i++;
+		}
+		if(createdVar) {
+			var FooterGame = Type.resolveClass("footers.FooterGame");
+			FooterGame.hero = null;
+			FooterGame.hero = Hs;
+		}
+	}
+	if(settings.allPins) {
+		var shamanTools = Hs.game.map.shamanTools;
+		var createdVar = false;
+		var pins = [-16, -17, 18, 19, 33, 34, 35, 36];
+		var i = 0;
+		while(i < pins.length) {
+			var pinExist = false;
+			if(pins[i] >= 0) {
+				pinExist = shamanTools.indexOf(pins[i]) != -1;
+			} else {
+				pinExist = shamanTools.indexOf(pins[i] * -1) == -1;
+			}
+			if(!pinExist) {
+				if(!createdVar) {
+					Est.addedShamanToolsPins = [];
+					createdVar = true;
+				}
+				Est.addedShamanToolsPins.push(pins[i]);
+				if(pins[i] >= 0) {
+					shamanTools.push(pins[i]);
+				} else {
+					shamanTools.splice(shamanTools.indexOf(pins[i] * -1), 1);
+				}
+			}
+			i++;
+		}
+	}
 	var ControllerHeroLocal = Type.resolveClass("controllers.ControllerHeroLocal");
 	if(settings.disableKickTimer) {
 		ControllerHeroLocal.resetKickTimer();
 	}
+};
 
+Est.addLoggerHandler(function(message) {
+	var isIn = message.indexOf("Received server packet [object PacketRound") != -1;
+	var isOut = message.indexOf("Sending packet with type") != -1 && message.indexOf(", ROUND_") != -1;
+	if(!isIn && !isOut) {
+		return;
+	}
+	onAnyUpdate(null);
 	return true;
 });
+
+Est.setInterval(onAnyUpdate, 1000);
 
 var Keyboard = Type.resolveClass("flash.ui.Keyboard");
 var KeyboardEvent = Type.resolveClass("flash.events.KeyboardEvent");
 Game.stage.addEventListener(KeyboardEvent.KEY_UP, function(e) {
-	if(Game.chat != null && Game.chat.visible) {
-		return;
-	}
 	var settings = Game.self.est.settings;
 	if(settings == null) {
 		return;
@@ -180,11 +262,34 @@ Game.stage.addEventListener(KeyboardEvent.KEY_UP, function(e) {
 	if(!settings.hotkeys) {
 		return;
 	}
-	if(!e.ctrlKey) {
+	if(Game.chat != null && Game.chat.visible) {
 		return;
 	}
+	if(!Reflect.hasField(Game.self.est, "lastKeyPress") || Game.self.est.lastKeyPress != e.keyCode) {
+		return;
+	}
+	Game.self.est.lastKeyPress = null;
+});
+Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
+	var settings = Game.self.est.settings;
+	if(settings == null) {
+		return;
+	}
+	if(!settings.hotkeys) {
+		return;
+	}
+	if(Game.chat != null && Game.chat.visible) {
+		return;
+	}
+	if(Reflect.hasField(Game.self.est, "lastKeyPress") && Game.self.est.lastKeyPress == e.keyCode) {
+		return;
+	}
+	Game.self.est.lastKeyPress = e.keyCode;
 	var Hs = Hero.self;
-	if(Hs != null) {
+	if(Hs == null) {
+		return;
+	}
+	if(e.ctrlKey) {
 		if(e.keyCode == Keyboard.E) {
 			var PacketClient = Type.resolveClass("protocol.PacketClient");
 			if(Hs.hasNut) {
@@ -214,24 +319,68 @@ Game.stage.addEventListener(KeyboardEvent.KEY_UP, function(e) {
 			return;
 		}
 		if(e.keyCode == Keyboard.Q) {
-			var squirrelGame = Type.resolveClass("game.mainGame.SquirrelGame").instance;
-			var gameObjects = squirrelGame.map.gameObjects();
+			var gameObjects = Hs.game.map.gameObjects();
 			var Point = Type.resolveClass("flash.geom.Point");
 			var b2Vec2 = Type.resolveClass("Box2D.Common.Math.b2Vec2");
-			var point = squirrelGame.squirrels.globalToLocal(Type.createInstance(Point, [Game.stage.mouseX, Game.stage.mouseY]));
+			var point = Hs.game.squirrels.globalToLocal(Type.createInstance(Point, [Game.stage.mouseX, Game.stage.mouseY]));
             Hs.sendMove = false;
             Hs.teleportTo(Type.createInstance(b2Vec2, [point.x / Game.PIXELS_TO_METRE, point.y / Game.PIXELS_TO_METRE]));
             return;
 		}
 	}
-	if(e.keyCode == Keyboard.G) {
+	if(e.keyCode == Keyboard.NUMPAD_ADD) {
+		if(!Reflect.hasField(Game.self.est, "hackCastEntityId")) {
+            Game.self.est.hackCastEntityId = 0;
+        }
+        var EntityFactory = Type.resolveClass("game.mainGame.entity.EntityFactory");
+        var entityId = Game.self.est.hackCastEntityId + 1;
+        if(e.ctrlKey) {
+        	entityId = entityId + 9;
+        }
+        if(entityId > 306) {
+        	entityId = entityId - 307;
+        }
+        try {
+        	Hs.game.cast.castObject = Type.createInstance(EntityFactory.getEntity(entityId), []);
+        } catch(e:Dynamic) {};
+        Game.self.est.hackCastEntityId = entityId;
+        Game.self.est.sendData(Game.self.est.packetId, JSON.stringify({est: ["updateData", "storage.hackCastEntityId", entityId]}));
+		return;
+	}
+	if(e.keyCode == Keyboard.NUMPAD_SUBTRACT) {
+		if(!Reflect.hasField(Game.self.est, "hackCastEntityId")) {
+            Game.self.est.hackCastEntityId = 0;
+        }
+        var EntityFactory = Type.resolveClass("game.mainGame.entity.EntityFactory");
+        var entityId = Game.self.est.hackCastEntityId - 1;
+        if(e.ctrlKey) {
+        	entityId = entityId - 9;
+        }
+        if(entityId < 0) {
+        	entityId = entityId + 307;
+        }
+        try {
+        	Hs.game.cast.castObject = Type.createInstance(EntityFactory.getEntity(entityId), []);
+        } catch(e:Dynamic) {};
+        Game.self.est.hackCastEntityId = entityId;
+        Game.self.est.sendData(Game.self.est.packetId, JSON.stringify({est: ["updateData", "storage.hackCastEntityId", entityId]}));
+		return;
+	}
+	if(e.keyCode == Keyboard.NUMPAD_0) {
+        var EntityFactory = Type.resolveClass("game.mainGame.entity.EntityFactory");
+        var entityId = Game.self.est.hackCastEntityId;
+        try {
+        	Hs.game.cast.castObject = Type.createInstance(EntityFactory.getEntity(entityId), []);
+        } catch(e:Dynamic) {};
+        Game.self.est.sendData(Game.self.est.packetId, JSON.stringify({est: ["updateData", "storage.hackCastEntityId", entityId]}));
+		return;
+	}
+	if(e.keyCode == Keyboard.NUMPAD_DECIMAL) {
 		var PacketClient = Type.resolveClass("protocol.PacketClient");
-		var squirrelGame = Type.resolveClass("game.mainGame.SquirrelGame").instance;
-		var gameObjects = squirrelGame.map.gameObjects();
+		var gameObjects = Hs.game.map.gameObjects();
 		var Point = Type.resolveClass("flash.geom.Point");
 		var b2Vec2 = Type.resolveClass("Box2D.Common.Math.b2Vec2");
-		var PacketClient = Type.resolveClass("protocol.PacketClient");
-		var point = squirrelGame.squirrels.globalToLocal(Type.createInstance(Point, [Game.stage.mouseX, Game.stage.mouseY]));
+		var point = Hs.game.squirrels.globalToLocal(Type.createInstance(Point, [Game.stage.mouseX, Game.stage.mouseY]));
 		var pos = Type.createInstance(b2Vec2, [point.x / Game.PIXELS_TO_METRE, point.y / Game.PIXELS_TO_METRE]);
 		var objId = -1;
 		var minDist = -1;
@@ -244,14 +393,14 @@ Game.stage.addEventListener(KeyboardEvent.KEY_UP, function(e) {
 				if(distLen < 10) {
 					if(minDist == -1 || distLen < minDist) {
 						objId = i;
-						minDist = distLen * Game.PIXELS_TO_METRE;
+						minDist = distLen;
 					}
 				}
 			} catch(e:Dynamic) {};
 			i++;
 		}
 		if(objId != -1) {
-			Game.self.est.sendData(PacketClient.ROUND_COMMAND, "{\"Destroy\":[" + objId + ",true]}");
+			Game.self.est.sendData(Game.self.est.packetId, "{\"Destroy\":[" + objId + ",true]}");
 		}
 		return;
 	}

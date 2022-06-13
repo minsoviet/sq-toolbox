@@ -26,7 +26,6 @@ module.exports = function(options) {
 		fs.mkdirSync(options.local.cacheDir)
 
 	const constants = JSON.parse(fs.readFileSync(options.local.dataDir + '/constants.json', 'utf8'))
-	const defaults = JSON.parse(fs.readFileSync(options.local.dataDir + '/defaults.json', 'utf8'))
 	const scripts = {
 		inject: fs.readFileSync(options.local.dataDir + '/scripts/inject.hx', 'utf8'),
 		setGameHandlers: fs.readFileSync(options.local.dataDir + '/scripts/setGameHandlers.hx', 'utf8'),
@@ -159,7 +158,7 @@ module.exports = function(options) {
 		switch (name) {
 			case 'fakeVIP':
 				if (isFirstRun)
-					return;
+					return
 				if (!value)
 					client.sendData('PacketExpirations', {
 						items: [client.storage.origVIPExpiration]
@@ -175,7 +174,7 @@ module.exports = function(options) {
 				break
 			case 'fakeModerator':
 				if (isFirstRun)
-					return;
+					return
 				let moderator = player.moderator || value
 				client.sendData('PacketInfo', {
 					data: [{
@@ -186,7 +185,7 @@ module.exports = function(options) {
 				break
 			case 'fakeLevel':
 				if (isFirstRun)
-					return;
+					return
 				let exp = player.exp
 				if (value)
 					exp = levelToExp(200)
@@ -221,7 +220,7 @@ module.exports = function(options) {
 					if ('checkModeratorsInterval' in client)
 						break
 					let checkModerators = function() {
-						let moderators = [];
+						let moderators = []
 						for (let moderator of constants.moderators) {
 							moderators.push([moderator])
 						}
@@ -359,6 +358,15 @@ module.exports = function(options) {
 		client.round = {
 			in: false
 		}
+		client.settings = getSettings(client)
+		for (let setting of constants.settingsData) {
+			if (!(setting[0] in client.settings))
+				client.settings[setting[0]] = setting[2]
+		}
+		for (let setting of constants.settingsData) {
+			updateSetting(client, setting[0], client.settings[setting[0]], true)
+		}
+		saveSettings(client)
 		Logger.info('server', `Вы вошли как ${getPlayerMention(client, client.uid)}`)
 		showMessage(client, 'Для полной активации функций нужно попасть на локацию')
 	}
@@ -367,12 +375,6 @@ module.exports = function(options) {
 		if (packet.data.innerId === undefined)
 			return false
 		client.uid = packet.data.innerId
-		let settings = getSettings(client)
-		client.settings = Object.assign(defaults, settings)
-		for (let name of Object.keys(client.settings)) {
-			updateSetting(client, name, client.settings[name], true)
-		}
-		saveSettings(client)
 		if (options.local.saveLoginData)
 			fs.writeFileSync(options.local.cacheDir + '/loginData' + client.uid + '.txt', client.storage.loginData, { encoding: 'utf8', flag: 'w+'})
 		return false
@@ -709,25 +711,33 @@ module.exports = function(options) {
 			dataJson
 		} = packet.data
 		if (constants.moderators.indexOf(playerId) !== -1 && client.room.players.indexOf(playerId) === -1 && !client.round.moderators[playerId]) {
-			client.round.moderators[playerId] = true;
+			client.round.moderators[playerId] = true
 			if (client.settings.warnModerators) {
 				showMessage(client, 'ВНИМАНИЕ!!! БУДЬТЕ ОСТОРОЖНЫ!!!\n' +
 					'\n' +
-					getPlayerMention(client, playerId) + ' в комнате')
+					getPlayerMention(client, playerId) + ' наблюдает')
 			}
 			if (client.settings.notifyModerators) {
 				client.sendData('PacketChatMessage', {
 					chatType: 0,
 					playerId: playerId,
-					message: '<span class=\'color3\'>В комнате</span>'
+					message: '<span class=\'color7\'>Наблюдает</span>'
 				})
 			}
 			if (client.settings.logModerators) {
-				Logger.info('server', `${getPlayerMention(client, playerId)} в комнате`)
+				Logger.info('server', `${getPlayerMention(client, playerId)} наблюдает`)
 			}
 		}
 		if (!dataJson)
 			return true
+		if ('estChat' in dataJson) {
+			client.sendData('PacketChatMessage', {
+				chatType: 0,
+				playerId: playerId,
+				message: '<span class=\'color6\'>' + dataJson.estChat.substr(0, 127) + '</span>'
+			})
+			return true
+		}
 		if ('reportedPlayerId' in dataJson) {
 			if (playerId === client.uid)
 				return false
@@ -974,6 +984,38 @@ module.exports = function(options) {
 		return false
 	}
 
+	function handleRoundCastBeginClientPacket(client, packet, buffer) {
+		let [id, data] = packet.data
+		let [entityId, objectData] = data[1]
+		if (entityId !== -1 && (!client.settings.infSquirrelItems || client.storage.shamans.indexOf(client.uid) !== -1) && client.storage.hackCastEntityId !== client.storage.lastCastEntityId)
+			return false
+		client.storage.lastCastObjectData = objectData
+		return true
+	}
+
+	function handleRoundCastEndClientPacket(client, packet, buffer) {
+		let [castType, id, success] = packet.data
+		if (!success) {
+			if (client.storage.ignoreNextFailedCast) {
+				delete client.storage.ignoreNextFailedCast
+				return true
+			}
+		} else {
+			if (client.settings.noCastClear)
+				client.storage.ignoreNextFailedCast = true
+			if (!('lastCastObjectData' in client.storage))
+				return client.settings.infSquirrelItems && castType == PacketClient.CAST_SQUIRREL
+			if (!('lastCastEntityId' in client.storage))
+				return true
+			client.proxy.sendData('ROUND_COMMAND', {
+				'Create': [client.storage.lastCastEntityId, client.storage.lastCastObjectData, true]
+			})
+			// console.log("round_command used")
+			delete client.storage.lastCastObjectData
+			return true
+		}
+	}
+
 	function handleHelpCommand(client, chatType, args) {
 		showMessage(client, 'Доступные команды:\n' +
 			'\n' +
@@ -1203,6 +1245,18 @@ module.exports = function(options) {
 
 	function handleChatMessageClientPacket(client, packet, buffer) {
 		let [chatType, msg] = packet.data
+		if (msg.startsWith('!') && msg !== '!') {
+			if (chatType !== 0) {
+				client.sendData('PacketChatMessage', {
+					chatType: chatType,
+					playerId: client.uid,
+					message: '<span class=\'color6\'>Функция доступна только в комнате</span>'
+				})
+			} else {
+				client.proxy.sendData('ROUND_COMMAND', {'estChat': msg.substring(1)})
+			}
+			return true
+		}
 		if (!msg.startsWith('.'))
 			return false
 		if (msg === '.')
@@ -1254,6 +1308,14 @@ module.exports = function(options) {
 				if (handleRoundCommandClientPacket(client, packet, buffer))
 					return false
 				break
+			case 'ROUND_CAST_BEGIN':
+				if (handleRoundCastBeginClientPacket(client, packet, buffer))
+					return false
+				break
+			case 'ROUND_CAST_END':
+				if (handleRoundCastEndClientPacket(client, packet, buffer))
+					return false
+				break
 			case 'CHAT_MESSAGE':
 				if (handleChatMessageClientPacket(client, packet, buffer))
 					return false
@@ -1282,13 +1344,14 @@ module.exports = function(options) {
 	}
 
 	function handleClose(client) {
-		if (client.uid)
-			Logger.info('server', `Вы вышли как ${getPlayerMention(client, client.uid)}`)
-		clients.splice(clients.indexOf(client), 1)
-		client.removeAllListeners()
+		let index = clients.indexOf(client)
+		if (index !== -1) {
+			if (client.uid)
+				Logger.info('server', `Вы вышли как ${getPlayerMention(client, client.uid)}`)
+			clients.splice(index, 1)
+		}
 		if (!client.proxy)
 			return true
-		client.proxy.removeAllListeners()
 		client.proxy.close()
 		return true
 	}

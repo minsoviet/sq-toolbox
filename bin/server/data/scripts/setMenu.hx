@@ -49,6 +49,19 @@ Game.stage.addEventListener(KeyboardEvent.KEY_UP, function(e) {
 	if(Game.chat != null && Game.chat.visible) {
 		return;
 	}
+	if(!Reflect.hasField(Game.self.est, "lastKeyPressMenu") || Game.self.est.lastKeyPressMenu != e.keyCode) {
+		return;
+	}
+	Game.self.est.lastKeyPressMenu = null;
+});
+Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
+	if(Game.chat != null && Game.chat.visible) {
+		return;
+	}
+	if(Reflect.hasField(Game.self.est, "lastKeyPressMenu") && Game.self.est.lastKeyPressMenu == e.keyCode) {
+		return;
+	}
+	Game.self.est.lastKeyPressMenu = e.keyCode;
 	if(!e.ctrlKey || e.keyCode != Keyboard.M) {
 		return;
 	}
