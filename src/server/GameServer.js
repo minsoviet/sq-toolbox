@@ -28,10 +28,13 @@ module.exports = function(options) {
 	const constants = JSON.parse(fs.readFileSync(options.local.dataDir + '/constants.json', 'utf8'))
 	const scripts = {
 		inject: fs.readFileSync(options.local.dataDir + '/scripts/inject.hx', 'utf8'),
-		setGameHandlers: fs.readFileSync(options.local.dataDir + '/scripts/setGameHandlers.hx', 'utf8'),
-		setMenu: fs.readFileSync(options.local.dataDir + '/scripts/setMenu.hx', 'utf8'),
+		onAnyUpdate: fs.readFileSync(options.local.dataDir + '/scripts/onAnyUpdate.hx', 'utf8'),
 		onSettingsUpdate: fs.readFileSync(options.local.dataDir + '/scripts/onSettingsUpdate.hx', 'utf8'),
-		onNewRound: fs.readFileSync(options.local.dataDir + '/scripts/onNewRound.hx', 'utf8')
+		onNewRound: fs.readFileSync(options.local.dataDir + '/scripts/onNewRound.hx', 'utf8'),
+		setMenu: fs.readFileSync(options.local.dataDir + '/scripts/setMenu.hx', 'utf8'),
+		setHotkeys: fs.readFileSync(options.local.dataDir + '/scripts/setHotkeys.hx', 'utf8'),
+		setHighlightObjects: fs.readFileSync(options.local.dataDir + '/scripts/setHighlightObjects.hx', 'utf8'),
+		init: fs.readFileSync(options.local.dataDir + '/scripts/init.hx', 'utf8')
 	}
 
 	function getTime() {
@@ -577,7 +580,7 @@ module.exports = function(options) {
 					moderators: {}
 				}
 				if (client.storage.gameInjected) {
-					runScript(client, true, scripts.onNewRound)
+					runScript(client, true, scripts.init)
 				} else {
 					client.defer.push(function() {
 						createMapTimer(client, true, scripts.inject)
@@ -653,7 +656,7 @@ module.exports = function(options) {
 					client.sendData('PacketChatMessage', {
 						chatType: 0,
 						playerId: client.uid,
-						message: '<span class=\'color1\'>В комнате пусто</span>'
+						message: '<span class=\'color3\'>В комнате пусто</span>'
 					})
 				}
 			}
@@ -739,7 +742,7 @@ module.exports = function(options) {
 				client.sendData('PacketChatMessage', {
 					chatType: 0,
 					playerId: playerId,
-					message: `<span class=\'color3\'>Кинул жалобу на</span> <span class=\'color1\'>${getPlayerMention(client, dataJson.reportedPlayerId)}</span>`
+					message: `<span class=\'color3\'>Кинул жалобу на</span> <span class=\'color6\'>${getPlayerMention(client, dataJson.reportedPlayerId)}</span>`
 				})
 			}
 			if (dataJson.reportedPlayerId === client.uid && client.settings.ignoreSelfReports)
@@ -767,24 +770,27 @@ module.exports = function(options) {
 			}
 		}
 		if ('Destroy' in dataJson) {
-			if (playerId === client.uid && client.round.ignoreSelfDestroys) {
-				client.round.ignoreSelfDestroys--
-				return true
-			}
-			if ((client.settings.ignoreInvalidObjects && !isValidDestroy(dataJson.Destroy)) || (client.settings.createBeforeDestroy && !client.round.mapObjects[playerId]) || (client.settings.preserveMapObjects && 'mapObjects' in client.round && dataJson.Destroy[0] < client.round.mapObjects)) {
-				if (client.settings.logBadObjects) {
-					Logger.info('server', `${getPlayerMention(client, playerId)} пытался удалить объект ID ${dataJson.Destroy[0].toString()}`)
+			if (playerId === client.uid) {
+				if(client.round.ignoreSelfDestroys) {
+					client.round.ignoreSelfDestroys--
+					return true
 				}
-				if (client.settings.notifyObjects) {
-					client.sendData('PacketChatMessage', {
-						chatType: 0,
-						playerId: playerId,
-						message: `<span class=\'color3\'>Пытался удалить объект</span> <span class=\'color1\'>ID ${dataJson.Destroy[0].toString()}</span>`
-					})
+			} else {
+				if ((client.settings.ignoreInvalidObjects && !isValidDestroy(dataJson.Destroy)) || (client.settings.createBeforeDestroy && !client.round.mapObjects[playerId]) || (client.settings.preserveMapObjects && 'mapObjects' in client.round && dataJson.Destroy[0] < client.round.mapObjects)) {
+					if (client.settings.logBadObjects) {
+						Logger.info('server', `${getPlayerMention(client, playerId)} пытался удалить объект ID ${dataJson.Destroy[0].toString()}`)
+					}
+					if (client.settings.notifyObjects) {
+						client.sendData('PacketChatMessage', {
+							chatType: 0,
+							playerId: playerId,
+							message: `<span class=\'color3\'>Пытался удалить объект</span> <span class=\'color6\'>ID ${dataJson.Destroy[0].toString()}</span>`
+						})
+					}
+					if (client.round.mapObjects[playerId])
+						client.round.mapObjects[playerId]--
+					return true
 				}
-				if (client.round.mapObjects[playerId])
-					client.round.mapObjects[playerId]--
-				return true
 			}
 		}
 		return false
@@ -938,9 +944,7 @@ module.exports = function(options) {
 						break
 					switch (data['est'][1]) {
 						case 0:
-							var script = ''
-							script = script + scripts.setGameHandlers
-							script = script + 'Est.sendData(Est.packetId, "{\\"est\\":[\\"status\\",1]}");'
+							var script = 'Est.sendData(Est.packetId, "{\\"est\\":[\\"status\\",1]}");'
 							runScript(client, true, script)
 							break
 						case 1:
@@ -948,18 +952,20 @@ module.exports = function(options) {
 							sendSettings(client)
 							sendPlayerInfo(client)
 							sendConstants(client)
-							// runExternalScript(client, injectExternalScript)
-							runScript(client, true, scripts.setMenu)
+							// runExternalScript(client, scripts.external)
+							runScript(client, true, scripts.onAnyUpdate)
 							runScript(client, true, scripts.onSettingsUpdate)
 							runScript(client, true, scripts.onNewRound)
+							runScript(client, true, scripts.setMenu)
+							runScript(client, true, scripts.setHotkeys)
+							runScript(client, true, scripts.setHighlightObjects)
+							runScript(client, true, scripts.init)
 							showMessage(client, 'Успешное внедрение в игру, все функции активны')
 					}
 					break
 				case 'updateSetting':
 					client.settings[data['est'][1]] = data['est'][2]
 					updateSetting(client, data['est'][1], data['est'][2], false)
-					sendSettings(client)
-					runScript(client, true, scripts.onSettingsUpdate)
 					saveSettings(client)
 					break
 				case 'updateData':
@@ -978,8 +984,12 @@ module.exports = function(options) {
 
 	function handleRoundCastBeginClientPacket(client, packet, buffer) {
 		let [id, data] = packet.data
+		if (!data) {
+			return true
+		}
 		let [entityId, objectData] = data[1]
-		if (entityId !== -1 && (!client.settings.infSquirrelItems || client.storage.shamans.indexOf(client.uid) !== -1) && client.storage.hackCastEntityId !== client.storage.lastCastEntityId)
+		let isShaman = client.storage.shamans.indexOf(client.uid) !== -1
+		if (entityId !== -1 && (!client.settings.infSquirrelItems || isShaman) && ((client.settings.forceCastObjects && isShaman) || client.storage.hackCastEntityId !== client.storage.lastCastEntityId))
 			return false
 		client.storage.lastCastObjectData = objectData
 		return true
@@ -1030,7 +1040,7 @@ module.exports = function(options) {
 		client.sendData('PacketChatMessage', {
 			chatType: chatType,
 			playerId: playerId,
-			message: '<span class=\'color3\'>Я читерил меня искали</span>'
+			message: '<span class=\'color3\'>Я читерил — меня искали</span>'
 		})
 	}
 

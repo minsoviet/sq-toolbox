@@ -1,0 +1,2 @@
+Est.onSettingsUpdate();
+Est.onNewRound();

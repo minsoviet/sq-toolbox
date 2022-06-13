@@ -29,9 +29,11 @@ while(i < settingsData.length) {
 		checkBox.label = name;
 		checkBox.selected = value;
 		checkBox.addEventListener(MouseEvent.CLICK, function(e) {
-			var Est = Game.self.est;
+			var Gs = Game.self;
+			var Est = Gs.est;
 			Est.settings[key] = checkBox.selected;
 			Est.sendData(Est.packetId, JSON.stringify({est: ["updateSetting", key, checkBox.selected]}));
+			Est.onSettingsUpdate();
 		});
 		menuDialog.addChild(checkBox);
 		offsetY = offsetY + 20;
@@ -49,7 +51,8 @@ Game.stage.addEventListener(KeyboardEvent.KEY_UP, function(e) {
 	if(Game.chat != null && Game.chat.visible) {
 		return;
 	}
-	var Est = Game.self.est;
+	var Gs = Game.self;
+	var Est = Gs.est;
 	if(!Reflect.hasField(Est, "lastKeyPressMenu") || Est.lastKeyPressMenu != e.keyCode) {
 		return;
 	}
@@ -59,7 +62,8 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 	if(Game.chat != null && Game.chat.visible) {
 		return;
 	}
-	var Est = Game.self.est;
+	var Gs = Game.self;
+	var Est = Gs.est;
 	if(Reflect.hasField(Est, "lastKeyPressMenu") && Est.lastKeyPressMenu == e.keyCode) {
 		return;
 	}
