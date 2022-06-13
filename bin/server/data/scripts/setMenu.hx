@@ -49,23 +49,25 @@ Game.stage.addEventListener(KeyboardEvent.KEY_UP, function(e) {
 	if(Game.chat != null && Game.chat.visible) {
 		return;
 	}
-	if(!Reflect.hasField(Game.self.est, "lastKeyPressMenu") || Game.self.est.lastKeyPressMenu != e.keyCode) {
+	var Est = Game.self.est;
+	if(!Reflect.hasField(Est, "lastKeyPressMenu") || Est.lastKeyPressMenu != e.keyCode) {
 		return;
 	}
-	Game.self.est.lastKeyPressMenu = null;
+	Est.lastKeyPressMenu = null;
 });
 Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 	if(Game.chat != null && Game.chat.visible) {
 		return;
 	}
-	if(Reflect.hasField(Game.self.est, "lastKeyPressMenu") && Game.self.est.lastKeyPressMenu == e.keyCode) {
+	var Est = Game.self.est;
+	if(Reflect.hasField(Est, "lastKeyPressMenu") && Est.lastKeyPressMenu == e.keyCode) {
 		return;
 	}
-	Game.self.est.lastKeyPressMenu = e.keyCode;
+	Est.lastKeyPressMenu = e.keyCode;
 	if(!e.ctrlKey || e.keyCode != Keyboard.M) {
 		return;
 	}
-	var menuDialog = Game.self.est.menu;
+	var menuDialog = Est.menu;
 	if(menuDialog.visible) {
 		menuDialog.hide();
 	} else {

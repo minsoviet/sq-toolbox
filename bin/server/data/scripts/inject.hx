@@ -25,7 +25,8 @@ if(!Reflect.hasField(Gs, "est")) {
         addLoggerHandler: function(func) { return Game.self.est.loggerHandlers.push(func); },
         addExternalHandler: function(prefix, func) { if(!Reflect.hasField(Game.self.est.externalHandlers, prefix)) { Game.self.est.externalHandlers[prefix] = []; } return Game.self.est.externalHandlers[prefix].push(func); },
         setTimeout: function(func, delay) { var Timer = Type.resolveClass("flash.utils.Timer"); var TimerEvent = Type.resolveClass("flash.events.TimerEvent"); var timer = Type.createInstance(Timer, [delay, 1]); timer.addEventListener(TimerEvent.TIMER, func); timer.reset(); timer.start(); },
-        setInterval: function(func, delay) { var Timer = Type.resolveClass("flash.utils.Timer"); var TimerEvent = Type.resolveClass("flash.events.TimerEvent"); var timer = Type.createInstance(Timer, [delay, 0]); timer.addEventListener(TimerEvent.TIMER, func); timer.reset(); timer.start(); }
+        setInterval: function(func, delay) { var Timer = Type.resolveClass("flash.utils.Timer"); var TimerEvent = Type.resolveClass("flash.events.TimerEvent"); var timer = Type.createInstance(Timer, [delay, 0]); timer.addEventListener(TimerEvent.TIMER, func); timer.reset(); timer.start(); },
+        addChatMessage: function(chatType, playerId, message) { var Connection = Type.resolveClass("protocol.Connection"); var PacketClient = Type.resolveClass("protocol.PacketClient"); var PacketChatMessage = Type.resolveClass("protocol.packages.server.PacketChatMessage"); Connection.receiveFake(PacketChatMessage.PACKET_ID, [PacketClient[chatType], playerId, message]); }
     };
     Gs.est.addCallback("__est_sendData", function(prefix, data) {
         if(!Reflect.hasField(Game.self.est.externalHandlers, prefix)) {

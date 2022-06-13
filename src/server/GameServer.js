@@ -730,14 +730,6 @@ module.exports = function(options) {
 		}
 		if (!dataJson)
 			return true
-		if ('estChat' in dataJson) {
-			client.sendData('PacketChatMessage', {
-				chatType: 0,
-				playerId: playerId,
-				message: '<span class=\'color6\'>' + dataJson.estChat.substr(0, 127) + '</span>'
-			})
-			return true
-		}
 		if ('reportedPlayerId' in dataJson) {
 			if (playerId === client.uid)
 				return false
@@ -1010,7 +1002,6 @@ module.exports = function(options) {
 			client.proxy.sendData('ROUND_COMMAND', {
 				'Create': [client.storage.lastCastEntityId, client.storage.lastCastObjectData, true]
 			})
-			// console.log("round_command used")
 			delete client.storage.lastCastObjectData
 			return true
 		}
@@ -1245,18 +1236,6 @@ module.exports = function(options) {
 
 	function handleChatMessageClientPacket(client, packet, buffer) {
 		let [chatType, msg] = packet.data
-		if (msg.startsWith('!') && msg !== '!') {
-			if (chatType !== 0) {
-				client.sendData('PacketChatMessage', {
-					chatType: chatType,
-					playerId: client.uid,
-					message: '<span class=\'color6\'>Функция доступна только в комнате</span>'
-				})
-			} else {
-				client.proxy.sendData('ROUND_COMMAND', {'estChat': msg.substring(1)})
-			}
-			return true
-		}
 		if (!msg.startsWith('.'))
 			return false
 		if (msg === '.')
