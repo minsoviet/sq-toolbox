@@ -5,17 +5,17 @@ function updateHighlightObjects(dt) {
 	if(settings == null) {
 		return;
 	}
-	var Hs = Hero.self;
-	if(Hs == null) {
-		return;
-	}
 	if(!settings.highlightObjects) {
 		return;
 	}
-	var gameObjects = Hs.game.map.gameObjects();
+	var Sg = Type.resolveClass("game.mainGame.SquirrelGame").instance;
+	if(Sg == null) {
+		return;
+	}
+	var gameObjects = Sg.map.gameObjects();
 	var Point = Type.resolveClass("flash.geom.Point");
 	var b2Vec2 = Type.resolveClass("Box2D.Common.Math.b2Vec2");
-	var point = Hs.game.squirrels.globalToLocal(Type.createInstance(Point, [Game.stage.mouseX, Game.stage.mouseY]));
+	var point = Sg.squirrels.globalToLocal(Type.createInstance(Point, [Game.stage.mouseX, Game.stage.mouseY]));
 	var pos = Type.createInstance(b2Vec2, [point.x / Game.PIXELS_TO_METRE, point.y / Game.PIXELS_TO_METRE]);
 	var objectId = -1;
 	var minDist = -1;

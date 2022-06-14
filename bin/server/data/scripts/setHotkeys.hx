@@ -35,54 +35,17 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 		return;
 	}
 	Est.lastKeyPress = e.keyCode;
-	var Hs = Hero.self;
-	if(Hs == null) {
+	var Sg = Type.resolveClass("game.mainGame.SquirrelGame").instance;
+	if(Sg == null) {
 		return;
 	}
 	if(e.ctrlKey) {
-		if(e.keyCode == Keyboard.E) {
-			var PacketClient = Type.resolveClass("protocol.PacketClient");
-			if(Hs.hasNut) {
-				Hs.setMode(Hero.NUDE_MOD);
-				Est.sendData(PacketClient.ROUND_NUT, PacketClient.NUT_LOST);
-			} else {
-				Hs.setMode(Hero.NUT_MOD);
-				Est.sendData(PacketClient.ROUND_NUT, PacketClient.NUT_PICK);
-			}
-			return;
-		}
-		if(e.keyCode == Keyboard.R) {
-			var PacketClient = Type.resolveClass("protocol.PacketClient");
-			Hs.onHollow(0);
-			Est.sendData(PacketClient.ROUND_NUT, PacketClient.NUT_PICK);
-			Est.sendData(PacketClient.ROUND_HOLLOW, 0);
-			return;
-		}
-		if(e.keyCode == Keyboard.T) {
-			if(Hs.isDead) {
-				var PacketClient = Type.resolveClass("protocol.PacketClient");
-				Est.sendData(PacketClient.ROUND_RESPAWN);
-			} else {
-				Hs.dieReason = Hero.DIE_REPORT;
-				Hs.dead = true;
-			}
-			return;
-		}
-		if(e.keyCode == Keyboard.Q) {
-			var gameObjects = Hs.game.map.gameObjects();
-			var Point = Type.resolveClass("flash.geom.Point");
-			var b2Vec2 = Type.resolveClass("Box2D.Common.Math.b2Vec2");
-			var point = Hs.game.squirrels.globalToLocal(Type.createInstance(Point, [Game.stage.mouseX, Game.stage.mouseY]));
-            Hs.sendMove = false;
-            Hs.teleportTo(Type.createInstance(b2Vec2, [point.x / Game.PIXELS_TO_METRE, point.y / Game.PIXELS_TO_METRE]));
-            return;
-		}
 		if(e.keyCode == Keyboard.G) {
-			var squirrels = Hs.game.squirrels;
+			var squirrels = Sg.squirrels;
 			var squirrelsIds = squirrels.getIds();
 			var Point = Type.resolveClass("flash.geom.Point");
 			var b2Vec2 = Type.resolveClass("Box2D.Common.Math.b2Vec2");
-			var point = Hs.game.squirrels.globalToLocal(Type.createInstance(Point, [Game.stage.mouseX, Game.stage.mouseY]));
+			var point = Sg.squirrels.globalToLocal(Type.createInstance(Point, [Game.stage.mouseX, Game.stage.mouseY]));
 			var pos = Type.createInstance(b2Vec2, [point.x / Game.PIXELS_TO_METRE, point.y / Game.PIXELS_TO_METRE]);
 			var squirrelId = -1;
 			var minDist = -1;
@@ -124,7 +87,7 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
         	entityId = entityId - 307;
         }
         try {
-        	Hs.game.cast.castObject = Type.createInstance(EntityFactory.getEntity(entityId), []);
+        	Sg.cast.castObject = Type.createInstance(EntityFactory.getEntity(entityId), []);
         } catch(e:Dynamic) {};
         Est.hackCastEntityId = entityId;
         Est.sendData(Est.packetId, JSON.stringify({est: ["updateData", "storage.hackCastEntityId", entityId]}));
@@ -143,7 +106,7 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
         	entityId = entityId + 307;
         }
         try {
-        	Hs.game.cast.castObject = Type.createInstance(EntityFactory.getEntity(entityId), []);
+        	Sg.cast.castObject = Type.createInstance(EntityFactory.getEntity(entityId), []);
         } catch(e:Dynamic) {};
         Est.hackCastEntityId = entityId;
         Est.sendData(Est.packetId, JSON.stringify({est: ["updateData", "storage.hackCastEntityId", entityId]}));
@@ -153,16 +116,16 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
         var EntityFactory = Type.resolveClass("game.mainGame.entity.EntityFactory");
         var entityId = Est.hackCastEntityId;
         try {
-        	Hs.game.cast.castObject = Type.createInstance(EntityFactory.getEntity(entityId), []);
+        	Sg.cast.castObject = Type.createInstance(EntityFactory.getEntity(entityId), []);
         } catch(e:Dynamic) {};
         Est.sendData(Est.packetId, JSON.stringify({est: ["updateData", "storage.hackCastEntityId", entityId]}));
 		return;
 	}
 	if(e.keyCode == Keyboard.NUMPAD_DECIMAL) {
-		var gameObjects = Hs.game.map.gameObjects();
+		var gameObjects = Sg.map.gameObjects();
 		var Point = Type.resolveClass("flash.geom.Point");
 		var b2Vec2 = Type.resolveClass("Box2D.Common.Math.b2Vec2");
-		var point = Hs.game.squirrels.globalToLocal(Type.createInstance(Point, [Game.stage.mouseX, Game.stage.mouseY]));
+		var point = Sg.squirrels.globalToLocal(Type.createInstance(Point, [Game.stage.mouseX, Game.stage.mouseY]));
 		var pos = Type.createInstance(b2Vec2, [point.x / Game.PIXELS_TO_METRE, point.y / Game.PIXELS_TO_METRE]);
 		var objectId = -1;
 		var minDist = -1;
@@ -207,7 +170,7 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
         		Est.sendData(Est.packetId, JSON.stringify({Create: deleted[1]}));
         	} else {
         		var PacketClient = Type.resolveClass("protocol.PacketClient");
-        		var gameObjects = Hs.game.map.gameObjects();
+        		var gameObjects = Sg.map.gameObjects();
         		var b2Vec2 = Type.resolveClass("Box2D.Common.Math.b2Vec2");
         		gameObjects[deleted[1][0]].position = Type.createInstance(b2Vec2, [deleted[1][1], deleted[1][2]]);
         		Est.sendData(PacketClient.ROUND_SYNC, PacketClient.SYNC_PLAYER, deleted[1]);
@@ -216,10 +179,10 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
         return;
 	}
 	if(e.keyCode == Keyboard.NUMPAD_MULTIPLY) {
-        var gameObjects = Hs.game.map.gameObjects();
+        var gameObjects = Sg.map.gameObjects();
 		var Point = Type.resolveClass("flash.geom.Point");
 		var b2Vec2 = Type.resolveClass("Box2D.Common.Math.b2Vec2");
-		var point = Hs.game.squirrels.globalToLocal(Type.createInstance(Point, [Game.stage.mouseX, Game.stage.mouseY]));
+		var point = Sg.squirrels.globalToLocal(Type.createInstance(Point, [Game.stage.mouseX, Game.stage.mouseY]));
 		var pos = Type.createInstance(b2Vec2, [point.x / Game.PIXELS_TO_METRE, point.y / Game.PIXELS_TO_METRE]);
 		var objectId = -1;
 		var minDist = -1;
@@ -251,7 +214,7 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 		return;
 	}
 	if(e.keyCode == Keyboard.NUMPAD_1) {
-        var castObject = Hs.game.cast.castObject;
+        var castObject = Sg.cast.castObject;
         if(castObject != null) {
         	castObject.fixed = !castObject.fixed;
         	var state = "<span class='color1'>НЕТ</span>";
@@ -263,7 +226,7 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
         return;
 	}
 	if(e.keyCode == Keyboard.NUMPAD_2) {
-        var castObject = Hs.game.cast.castObject;
+        var castObject = Sg.cast.castObject;
         if(castObject != null) {
         	try {
         		var size = castObject.size;
@@ -281,7 +244,7 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
         return;
 	}
 	if(e.keyCode == Keyboard.NUMPAD_3) {
-        var castObject = Hs.game.cast.castObject;
+        var castObject = Sg.cast.castObject;
         if(castObject != null) {
         	try {
         		var size = castObject.size;
@@ -299,7 +262,7 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
         return;
 	}
 	if(e.keyCode == Keyboard.NUMPAD_4) {
-        var castObject = Hs.game.cast.castObject;
+        var castObject = Sg.cast.castObject;
         if(castObject != null) {
         	castObject.ghostToObject = !castObject.ghostToObject;
         	var state = "<span class='color1'>НЕТ</span>";
@@ -309,5 +272,48 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
         	Est.addChatMessage("CHAT_ROOM", Gs.id, "<span class='color3'>Призр. к объектам:</span> " + state);
         }
         return;
+	}
+	var Hs = Hero.self;
+	if(Hs == null) {
+		return;
+	}
+	if(e.ctrlKey) {
+		if(e.keyCode == Keyboard.E) {
+			var PacketClient = Type.resolveClass("protocol.PacketClient");
+			if(Hs.hasNut) {
+				Hs.setMode(Hero.NUDE_MOD);
+				Est.sendData(PacketClient.ROUND_NUT, PacketClient.NUT_LOST);
+			} else {
+				Hs.setMode(Hero.NUT_MOD);
+				Est.sendData(PacketClient.ROUND_NUT, PacketClient.NUT_PICK);
+			}
+			return;
+		}
+		if(e.keyCode == Keyboard.R) {
+			var PacketClient = Type.resolveClass("protocol.PacketClient");
+			Hs.onHollow(0);
+			Est.sendData(PacketClient.ROUND_NUT, PacketClient.NUT_PICK);
+			Est.sendData(PacketClient.ROUND_HOLLOW, 0);
+			return;
+		}
+		if(e.keyCode == Keyboard.T) {
+			if(Hs.isDead) {
+				var PacketClient = Type.resolveClass("protocol.PacketClient");
+				Est.sendData(PacketClient.ROUND_RESPAWN);
+			} else {
+				Hs.dieReason = Hero.DIE_REPORT;
+				Hs.dead = true;
+			}
+			return;
+		}
+		if(e.keyCode == Keyboard.Q) {
+			var gameObjects = Sg.map.gameObjects();
+			var Point = Type.resolveClass("flash.geom.Point");
+			var b2Vec2 = Type.resolveClass("Box2D.Common.Math.b2Vec2");
+			var point = Sg.squirrels.globalToLocal(Type.createInstance(Point, [Game.stage.mouseX, Game.stage.mouseY]));
+            Hs.sendMove = false;
+            Hs.teleportTo(Type.createInstance(b2Vec2, [point.x / Game.PIXELS_TO_METRE, point.y / Game.PIXELS_TO_METRE]));
+            return;
+		}
 	}
 });

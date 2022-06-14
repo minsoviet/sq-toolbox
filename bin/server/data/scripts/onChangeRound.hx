@@ -1,10 +1,10 @@
-function onNewRound() {
+function onChangeRound() {
 	var Gs = Game.self;
 	var Est = Gs.est;
 	var settings = Est.settings;
-	var Hs = Hero.self;
-	if(Hs != null) {
-		var gameObjects = Hs.game.map.gameObjects();
+	var Sg = Type.resolveClass("game.mainGame.SquirrelGame").instance;
+	if(Sg != null) {
+		var gameObjects = Sg.map.gameObjects();
 		Est.sendData(Est.packetId, JSON.stringify({est: ["updateData", "round.mapObjects", gameObjects.length]}));
 		if(settings.showSensors) {
 			var i = 0;
@@ -16,10 +16,10 @@ function onNewRound() {
 				i++;
 			}
 		}
-		if(Reflect.hasField(Est, "lastHighlightObjectId")) {
-			Est.lastHighlightObjectId = -1;
-		}
-		Est.gameObjectsDeleted = [];
 	}
+	if(Reflect.hasField(Est, "lastHighlightObjectId")) {
+		Est.lastHighlightObjectId = -1;
+	}
+	Est.gameObjectsDeleted = [];
 }
-Est.onNewRound = onNewRound;
+Est.onChangeRound = onChangeRound;

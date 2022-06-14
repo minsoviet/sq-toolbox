@@ -30,11 +30,10 @@ module.exports = function(options) {
 		inject: fs.readFileSync(options.local.dataDir + '/scripts/inject.hx', 'utf8'),
 		onAnyUpdate: fs.readFileSync(options.local.dataDir + '/scripts/onAnyUpdate.hx', 'utf8'),
 		onSettingsUpdate: fs.readFileSync(options.local.dataDir + '/scripts/onSettingsUpdate.hx', 'utf8'),
-		onNewRound: fs.readFileSync(options.local.dataDir + '/scripts/onNewRound.hx', 'utf8'),
+		onChangeRound: fs.readFileSync(options.local.dataDir + '/scripts/onChangeRound.hx', 'utf8'),
 		setMenu: fs.readFileSync(options.local.dataDir + '/scripts/setMenu.hx', 'utf8'),
 		setHotkeys: fs.readFileSync(options.local.dataDir + '/scripts/setHotkeys.hx', 'utf8'),
-		setHighlightObjects: fs.readFileSync(options.local.dataDir + '/scripts/setHighlightObjects.hx', 'utf8'),
-		init: fs.readFileSync(options.local.dataDir + '/scripts/init.hx', 'utf8')
+		setHighlightObjects: fs.readFileSync(options.local.dataDir + '/scripts/setHighlightObjects.hx', 'utf8')
 	}
 
 	function getTime() {
@@ -42,7 +41,7 @@ module.exports = function(options) {
 	}
 
 	function showMessage(client, message) {
-		if (client.settings.scriptOutput && client.storage.gameInjected)
+		if (client.settings.scriptOutput && client.storage.injected)
 			client.sendData('PacketRoundCommand', {
 				playerId: client.uid,
 				dataJson: {
@@ -128,8 +127,8 @@ module.exports = function(options) {
 	}
 
 	function sendHollow(client) {
-		if (client.storage.gameInjected)
-			runScript(client, true, "if(Hero.self != null){Hero.self.onHollow(0);}")
+		if (client.storage.injected)
+			runScript(client, true, 'if(Hero.self != null){Hero.self.onHollow(0);}')
 		client.proxy.sendData('ROUND_NUT', PacketClient.NUT_PICK)
 		client.proxy.sendData('ROUND_HOLLOW', 0)
 	}
@@ -205,7 +204,7 @@ module.exports = function(options) {
 			case 'autoCrash':
 				if (value) {
 					let autoCrash = function() {
-						if (!client.round.in)
+						if (!client.room.in)
 							return
 						crashMap(client)
 					}
@@ -227,7 +226,7 @@ module.exports = function(options) {
 						for (let moderator of constants.moderators) {
 							moderators.push([moderator])
 						}
-						client.proxy.sendData("REQUEST", moderators, 72)
+						client.proxy.sendData('REQUEST', moderators, 72)
 					}
 					client.checkModeratorsInterval = setInterval(checkModerators, 15000)
 					checkModerators()
@@ -398,7 +397,7 @@ module.exports = function(options) {
 						'\n' +
 						constructPlayerMention(player) + ' в игре')
 				}
-				if (client.settings.notifyModerators && client.round.in) {
+				if (client.settings.notifyModerators && client.room.in) {
 					let message = '<span class=\'color1\'>Вышел из игры</span>'
 					if (player.online) {
 						message = '<span class=\'name_moderator\'>Вошел в игру</span>'
@@ -442,7 +441,7 @@ module.exports = function(options) {
 			handlePlayerInit(client)
 		} else {
 			client.player = Object.assign(client.player, player)
-			if (client.storage.gameInjected)
+			if (client.storage.injected)
 				sendPlayerInfo(client)
 		}
 		if (client.settings.fakeModerator && 'moderator' in player)
@@ -560,6 +559,28 @@ module.exports = function(options) {
 		let {
 			type
 		} = packet.data
+		console.log(type)
+		if (!client.player.moderator) {
+			var spy = client.storage.spy
+			if (spy) {
+				switch(type) {
+					case PacketServer.ROUND_STARTING:
+						console.log("round is starting, leave")
+						spy.state = 0
+						client.proxy.sendData('LEAVE')
+						return true
+					case PacketServer.ROUND_WAITING:
+					case PacketServer.ROUND_RESULTS:
+					case PacketServer.ROUND_PLAYING:
+						console.log("success spying")
+						spy.state = 1
+						break
+					case PacketServer.ROUND_START:
+						console.log("got ingame, leaving, ENERGY LOST!!!")
+						client.proxy.sendData('LEAVE')
+				}
+			}
+		}
 		switch (type) {
 			case PacketServer.ROUND_WAITING:
 			case PacketServer.ROUND_STARTING:
@@ -579,8 +600,9 @@ module.exports = function(options) {
 					hollow: [],
 					moderators: {}
 				}
-				if (client.storage.gameInjected) {
-					runScript(client, true, scripts.init)
+				if (client.storage.injected) {
+					client.round.beingInjected = true
+					runScript(client, true, 'Est.onChangeRound();')
 				} else {
 					client.defer.push(function() {
 						createMapTimer(client, true, scripts.inject)
@@ -628,7 +650,7 @@ module.exports = function(options) {
 			isPrivate
 		} = packet.data
 		client.room = {
-			in: false,
+			in: true,
 			players: [client.uid]
 		}
 		if (client.settings.logRoom) {
@@ -692,6 +714,17 @@ module.exports = function(options) {
 			}
 			client.round = {
 				in: false
+			}
+			if (!client.player.moderator) {
+				let spy = client.storage.spy
+				if (spy && spy.state !== -1) {
+					console.log("following after exit")
+					spy.state = 0
+					setTimeout(function() {
+						client.proxy.sendData('PLAY_WITH', spy.id)
+					}, 250)
+					return true
+				}
 			}
 			return false
 		}
@@ -771,7 +804,7 @@ module.exports = function(options) {
 		}
 		if ('Destroy' in dataJson) {
 			if (playerId === client.uid) {
-				if(client.round.ignoreSelfDestroys) {
+				if (client.round.ignoreSelfDestroys) {
 					client.round.ignoreSelfDestroys--
 					return true
 				}
@@ -812,6 +845,27 @@ module.exports = function(options) {
 					client.round.mapObjects[player]--
 			}
 		}
+		return false
+	}
+
+	function handlePlayWithServerPacket(client, packet, buffer) {
+		let {
+			type
+		} = packet.data
+		if (client.player.moderator || !client.storage.spy)
+			return false
+		switch(type) {
+			case PacketServer.PLAY_OFFLINE:
+			case PacketServer.PLAY_FAILED:
+			case PacketServer.NOT_EXIST:
+			case PacketServer.FULL_ROOM:
+			case PacketServer.NOT_IN_CLAN:
+			case PacketServer.UNAVAIABLE_LOCATION:
+			case PacketServer.LOW_ENERGY:
+				console.log("exit spy cuz follow error")
+				client.sendData('PacketRoomLeave', {playerId: client.uid})
+	            delete client.storage.spy
+	    }
 		return false
 	}
 
@@ -896,6 +950,10 @@ module.exports = function(options) {
 			 case 'PacketRoundCastEnd':
 				if (handleRoundCastEndServerPacket(client, packet, buffer))
 					return false
+				break
+			case 'PacketPlayWith':
+				if (handlePlayWithServerPacket(client, packet, buffer))
+					return false
 		}
 		client.sendPacket(packet)
 		while (client.defer.length > 0)
@@ -929,7 +987,7 @@ module.exports = function(options) {
 	function handleRoundCommandClientPacket(client, packet, buffer) {
 		let [data] = packet.data
 		if ('ScriptedTimer' in data || 'Sensor' in data) {
-			if (!client.storage.gameInjected) {
+			if (client.round.beingInjected && !client.storage.injected) {
 				client.sendData('PacketRoundCommand', {
 					playerId: client.uid,
 					dataJson: data
@@ -940,26 +998,28 @@ module.exports = function(options) {
 		if ('est' in data) {
 			switch (data['est'][0]) {
 				case 'status':
-					if (client.storage.gameInjected)
+					if (client.storage.injected)
 						break
 					switch (data['est'][1]) {
 						case 0:
+							delete client.round.beingInjected
 							var script = 'Est.sendData(Est.packetId, "{\\"est\\":[\\"status\\",1]}");'
 							runScript(client, true, script)
 							break
 						case 1:
-							client.storage.gameInjected = true
+							client.storage.injected = true
 							sendSettings(client)
 							sendPlayerInfo(client)
 							sendConstants(client)
 							// runExternalScript(client, scripts.external)
 							runScript(client, true, scripts.onAnyUpdate)
 							runScript(client, true, scripts.onSettingsUpdate)
-							runScript(client, true, scripts.onNewRound)
+							runScript(client, true, scripts.onChangeRound)
 							runScript(client, true, scripts.setMenu)
 							runScript(client, true, scripts.setHotkeys)
 							runScript(client, true, scripts.setHighlightObjects)
-							runScript(client, true, scripts.init)
+							runScript(client, true, 'Est.onSettingsUpdate();')
+							runScript(client, true, 'Est.onChangeRound();');
 							showMessage(client, 'Успешное внедрение в игру, все функции активны')
 					}
 					break
@@ -1006,7 +1066,7 @@ module.exports = function(options) {
 			if (client.settings.noCastClear)
 				client.storage.ignoreNextFailedCast = true
 			if (!('lastCastObjectData' in client.storage))
-				return client.settings.infSquirrelItems && castType == PacketClient.CAST_SQUIRREL
+				return client.settings.infSquirrelItems && castType === PacketClient.CAST_SQUIRREL
 			if (!('lastCastEntityId' in client.storage))
 				return true
 			client.proxy.sendData('ROUND_COMMAND', {
@@ -1098,27 +1158,27 @@ module.exports = function(options) {
 	}
 
 	function handleHackOlympicCommand(client, chatType, args) {
-		if (client.round.in)
+		if (client.room.in)
 			return showMessage(client, 'Вы уже на локации')
 		client.proxy.sendData('PLAY', 15, 0)
 	}
 
 	function handleHackSkillCommand(client, chatType, args) {
-		if (!client.round.in)
+		if (!client.room.in)
 			return showMessage(client, 'Вы не на локации')
 		client.storage.cancelNextSkill = true
 		showMessage(client, 'Следующая способность будет багнута отменой')
 	}
 
 	function handleHackCrashCommand(client, chatType, args) {
-		if (!client.round.in)
+		if (!client.room.in)
 			return showMessage(client, 'Вы не на локации')
-		crashPlayers(client)
+		crashMap(client)
 	}
 
 	function handleHackScriptCommand(client, chatType, args) {
 		let file = options.local.scriptsDir + '/' + args.shift()
-		if (!client.round.in)
+		if (!client.room.in)
 			return showMessage(client, 'Вы не на локации')
 		if (client.storage.shamans.indexOf(client.uid) === -1)
 			return showMessage(client, 'Вы не шаман')
@@ -1158,7 +1218,7 @@ module.exports = function(options) {
 	}
 
 	function handleDebugDumpPlayerCommand(client, chatType, args) {
-		if (client.storage.gameInjected)
+		if (client.storage.injected)
 			return runExternalScript(client, 'window.prompt("Скопируйте данные игрока.", "' + Buffer.from(JSON.stringify(client.player)).toString('base64') + '");')
 		showMessage(client, 'Дамп данных игрока:\n' +
 			'\n' +
@@ -1166,7 +1226,7 @@ module.exports = function(options) {
 	}
 
 	function handleDebugDumpLoginCommand(client, chatType, args) {
-		if (client.storage.gameInjected)
+		if (client.storage.injected)
 			return runExternalScript(client, 'window.prompt("Скопируйте данные входа.\\n\\nВНИМАНИЕ!!! НИКОМУ НЕ ПЕРЕДАВАЙТЕ ЭТИ ДАННЫЕ", "' + client.storage.loginData + '");')
 		showMessage(client, 'ВНИМАНИЕ!!! НИКОМУ НЕ ПЕРЕДАВАЙТЕ ЭТИ ДАННЫЕ!!!\n' +
 			'\n' +
@@ -1176,7 +1236,7 @@ module.exports = function(options) {
 	}
 
 	function handleDebugDumpStorageCommand(client, chatType, args) {
-		if (client.storage.gameInjected)
+		if (client.storage.injected)
 			return runExternalScript(client, 'window.prompt("Скопируйте данные сессии.\\n\\nВНИМАНИЕ!!! НИКОМУ НЕ ПЕРЕДАВАЙТЕ ЭТИ ДАННЫЕ", "' + JSON.stringify(client.storage).replace(/\"/g, "'") + '");')
 		showMessage(client, 'ВНИМАНИЕ!!! НИКОМУ НЕ ПЕРЕДАВАЙТЕ ЭТИ ДАННЫЕ!!!\n' +
 			'\n' +
@@ -1212,7 +1272,7 @@ module.exports = function(options) {
 
 	function handleDebugScriptCommand(client, chatType, args) {
 		let file = options.local.scriptsDir + '/' + args.shift()
-		if (!client.storage.gameInjected)
+		if (!client.storage.injected)
 			return showMessage(client, 'Не удалось запустить скрипт')
 		if (!fs.existsSync(file))
 			return showMessage(client, 'Скрипт не найден')
@@ -1279,6 +1339,27 @@ module.exports = function(options) {
 		return true
 	}
 
+	function handleSpyForClientPacket(client, packet, buffer) {
+		let [id] = packet.data
+		if (client.player.moderator)
+			return false
+		client.storage.spy = {
+			state: -1,
+			player: id
+		}
+		if (client.room.in)
+			client.proxy.sendData('LEAVE')
+		client.proxy.sendData('PLAY_WITH', id)
+		console.log("start spying for " + id)
+		return true
+	}
+
+	function handleLeaveClientPacket(client, packet, buffer) {
+		if (!client.player.moderator && client.storage.spy)
+			delete client.storage.spy
+		return false
+	}
+
 	function handleClientPacket(client, packet, buffer) {
 		Logger.debug('net', 'GameServer.onClientPacket', packet)
 		switch (packet.type) {
@@ -1307,6 +1388,14 @@ module.exports = function(options) {
 				break
 			case 'CHAT_MESSAGE':
 				if (handleChatMessageClientPacket(client, packet, buffer))
+					return false
+				break
+			case 'SPY_FOR':
+				if (handleSpyForClientPacket(client, packet, buffer))
+					return false
+				break
+			case 'LEAVE':
+				if (handleLeaveClientPacket(client, packet, buffer))
 					return false
 		}
 		client.proxy.sendPacket(packet)

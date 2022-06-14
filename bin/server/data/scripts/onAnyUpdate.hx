@@ -5,61 +5,59 @@ function onAnyUpdate(dt) {
 	if(settings == null) {
 		return;
 	}
-	var Hs = Hero.self;
-	if(Hs == null) {
+	var Sg = Type.resolveClass("game.mainGame.SquirrelGame").instance;
+	if(Sg == null) {
 		if(settings.noCastClear && Reflect.hasField(Est, "castClearSetup")) {
 			Est.castClearSetup = false;
 		}
-		if(settings.ignoreGag) {
-			var time = Est.getTimer() / 1000;
-			if((Game.gagTime - time) > 1.5) {
-				if(!Reflect.hasField(Est, "oldGagTime") || Est.oldGagTime < Game.gagTime) {
-					Est.oldGagTime = Game.gagTime;
-				}
-				Game.gagTime = time + 1.5;
-				if(Game.chat != null) {
-					Game.chat.setGag();
-				}
-				var ChatCommon = Type.resolveClass("chat.ChatCommon");
-				ChatCommon.setGag();
-			}
-		}
 		return;
 	}
-	if(settings.alwaysImmortal) {
-		Hs.immortal = true;
-	}
-	if(settings.ghostMode) {
-		Hs.ghost = true;
-	}
-	if(settings.infJumps) {
-		while(Hs.maxInAirJumps < 1000) {
-			Hs.maxInAirJumps++;
+	if(settings.ignoreGag) {
+		var time = Est.getTimer() / 1000;
+		if((Game.gagTime - time) > 1.5) {
+			if(!Reflect.hasField(Est, "oldGagTime") || Est.oldGagTime < Game.gagTime) {
+				Est.oldGagTime = Game.gagTime;
+			}
+			Game.gagTime = time + 1.5;
+			if(Game.chat != null) {
+				Game.chat.setGag();
+			}
+			var ChatCommon = Type.resolveClass("chat.ChatCommon");
+			ChatCommon.setGag();
 		}
 	}
 	if(settings.infRadius) {
-		if(Hs.game.cast.castRadius != 0) {
-			Est.oldCastRadius = Hs.game.cast.castRadius;
+		if(Sg.cast.castRadius != 0) {
+			Est.oldCastRadius = Sg.cast.castRadius;
 		}
-		if(Hs.game.cast.runCastRadius != 262144) {
-			Est.oldRunRadius = Hs.game.cast.runCastRadius;
+		if(Sg.cast.runCastRadius != 262144) {
+			Est.oldRunRadius = Sg.cast.runCastRadius;
 		}
-		if(Hs.game.cast.telekinezRadius != 262144) {
-			Est.oldTelekinezRadius = Hs.game.cast.telekinezRadius;
+		if(Sg.cast.telekinezRadius != 262144) {
+			Est.oldTelekinezRadius = Sg.cast.telekinezRadius;
 		}
-		Hs.game.cast.castRadius = 0;
-		Hs.game.cast.runCastRadius = 262144;
-		Hs.game.cast.telekinezRadius = 262144;
+		Sg.cast.castRadius = 0;
+		Sg.cast.runCastRadius = 262144;
+		Sg.cast.telekinezRadius = 262144;
 	}
 	if(settings.instantCast) {
-		if(Hs.useRunningCast != true) {
-			Est.oldRunCast = Hs.useRunningCast;
+		if(Sg.cast.castTime != 0) {
+			Est.oldCastTime = Sg.cast.castTime;
 		}
-		if(Hs.game.cast.castTime != 0) {
-			Est.oldCastTime = Hs.game.cast.castTime;
+		Sg.cast.castTime = 0;
+	}
+	var castObject = Sg.cast.castObject;
+	if(castObject != null) {
+		var EntityFactory = Type.resolveClass("game.mainGame.entity.EntityFactory");
+		var entityId = EntityFactory.getId(Sg.cast.castObject);
+		if(!Reflect.hasField(Est, "lastCastEntityId") || Est.lastCastEntityId != entityId) {
+			Est.lastCastEntityId = entityId;
+			Est.sendData(Est.packetId, JSON.stringify({est: ["updateData", "storage.lastCastEntityId", entityId]}));
 		}
-		Hs.useRunningCast = true;
-		Hs.game.cast.castTime = 0;
+	}
+	var Hs = Hero.self;
+	if(Hs == null) {
+		return;
 	}
 	var PerkShamanFactory = Type.resolveClass("game.mainGame.perks.shaman.PerkShamanFactory");
 	var ShamanToolBar = Type.resolveClass("game.mainGame.perks.shaman.ui.ShamanToolBar");
@@ -162,13 +160,59 @@ function onAnyUpdate(dt) {
 			i++;
 		}
 	}
-	var castObject = Hs.game.cast.castObject;
-	if(castObject != null) {
-		var EntityFactory = Type.resolveClass("game.mainGame.entity.EntityFactory");
-		var entityId = EntityFactory.getId(Hs.game.cast.castObject);
-		if(!Reflect.hasField(Est, "lastCastEntityId") || Est.lastCastEntityId != entityId) {
-			Est.lastCastEntityId = entityId;
-			Est.sendData(Est.packetId, JSON.stringify({est: ["updateData", "storage.lastCastEntityId", entityId]}));
+	if(settings.instantCast) {
+		if(Hs.useRunningCast != true) {
+			Est.oldRunCast = Hs.useRunningCast;
+		}
+		Hs.useRunningCast = true;
+	}
+	if(settings.allShamanItems) {
+		var shamanTools = Sg.map.shamanTools;
+		var createdVar = false;
+		var items = [0, 2, 4, 5, 6, 7, 8, 42, 47, 53];
+		var i = 0;
+		while(i < items.length) {
+			if(shamanTools.indexOf(items[i]) == -1) {
+				if(!createdVar) {
+					Est.addedShamanToolsItems = [];
+					createdVar = true;
+				}
+				Est.addedShamanToolsItems.push(items[i]);
+				shamanTools.push(items[i]);
+			}
+			i++;
+		}
+		if(createdVar) {
+			var FooterGame = Type.resolveClass("footers.FooterGame");
+			FooterGame.hero = null;
+			FooterGame.hero = Hs;
+		}
+	}
+	if(settings.allPins) {
+		var shamanTools = Sg.map.shamanTools;
+		var createdVar = false;
+		var pins = [-16, -17, 18, 19, 33, 34, 35, 36];
+		var i = 0;
+		while(i < pins.length) {
+			var pinExist = false;
+			if(pins[i] >= 0) {
+				pinExist = shamanTools.indexOf(pins[i]) != -1;
+			} else {
+				pinExist = shamanTools.indexOf(pins[i] * -1) == -1;
+			}
+			if(!pinExist) {
+				if(!createdVar) {
+					Est.addedShamanToolsPins = [];
+					createdVar = true;
+				}
+				Est.addedShamanToolsPins.push(pins[i]);
+				if(pins[i] >= 0) {
+					shamanTools.push(pins[i]);
+				} else {
+					shamanTools.splice(shamanTools.indexOf(pins[i] * -1), 1);
+				}
+			}
+			i++;
 		}
 	}
 	if(!Reflect.hasField(Est, "castClearSetup") || !Est.castClearSetup) {
@@ -197,60 +241,11 @@ function onAnyUpdate(dt) {
 		Hs.game.cast.listen(onCastEvent);
 		Est.castClearSetup = true;
 	}
-	if(settings.allShamanItems) {
-		var shamanTools = Hs.game.map.shamanTools;
-		var createdVar = false;
-		var items = [0, 2, 4, 5, 6, 7, 8, 42, 47, 53];
-		var i = 0;
-		while(i < items.length) {
-			if(shamanTools.indexOf(items[i]) == -1) {
-				if(!createdVar) {
-					Est.addedShamanToolsItems = [];
-					createdVar = true;
-				}
-				Est.addedShamanToolsItems.push(items[i]);
-				shamanTools.push(items[i]);
-			}
-			i++;
-		}
-		if(createdVar) {
-			var FooterGame = Type.resolveClass("footers.FooterGame");
-			FooterGame.hero = null;
-			FooterGame.hero = Hs;
-		}
-	}
-	if(settings.allPins) {
-		var shamanTools = Hs.game.map.shamanTools;
-		var createdVar = false;
-		var pins = [-16, -17, 18, 19, 33, 34, 35, 36];
-		var i = 0;
-		while(i < pins.length) {
-			var pinExist = false;
-			if(pins[i] >= 0) {
-				pinExist = shamanTools.indexOf(pins[i]) != -1;
-			} else {
-				pinExist = shamanTools.indexOf(pins[i] * -1) == -1;
-			}
-			if(!pinExist) {
-				if(!createdVar) {
-					Est.addedShamanToolsPins = [];
-					createdVar = true;
-				}
-				Est.addedShamanToolsPins.push(pins[i]);
-				if(pins[i] >= 0) {
-					shamanTools.push(pins[i]);
-				} else {
-					shamanTools.splice(shamanTools.indexOf(pins[i] * -1), 1);
-				}
-			}
-			i++;
-		}
-	}
 	var ControllerHeroLocal = Type.resolveClass("controllers.ControllerHeroLocal");
 	if(settings.disableKickTimer) {
 		ControllerHeroLocal.resetKickTimer();
 	}
-};
+}
 Est.addLoggerHandler(function(message) {
 	var isIn = message.indexOf("Received server packet [object PacketRound") != -1;
 	var isOut = message.indexOf("Sending packet with type") != -1 && message.indexOf(", ROUND_") != -1;
