@@ -18,7 +18,7 @@ if(!Reflect.hasField(Gs, "est")) {
         addExternalHandler: function(prefix, func) { if(!Reflect.hasField(Game.self.est.externalHandlers, prefix)) { Game.self.est.externalHandlers[prefix] = []; } return Game.self.est.externalHandlers[prefix].push(func); },
         setTimeout: function(func, delay) { var Timer = Type.resolveClass("flash.utils.Timer"); var TimerEvent = Type.resolveClass("flash.events.TimerEvent"); var timer = Type.createInstance(Timer, [delay, 1]); timer.addEventListener(TimerEvent.TIMER, func); timer.reset(); timer.start(); },
         setInterval: function(func, delay) { var Timer = Type.resolveClass("flash.utils.Timer"); var TimerEvent = Type.resolveClass("flash.events.TimerEvent"); var timer = Type.createInstance(Timer, [delay, 0]); timer.addEventListener(TimerEvent.TIMER, func); timer.reset(); timer.start(); },
-        showMessage: showMessage,
+        showMessage: function(caption, text) { var DialogInfo = Type.resolveClass("dialogs.DialogInfo"); Type.createInstance(DialogInfo, [caption, text]).show(); },
         addChatMessage: function(chatType, playerId, message) { var Connection = Type.resolveClass("protocol.Connection"); var PacketClient = Type.resolveClass("protocol.PacketClient"); var PacketChatMessage = Type.resolveClass("protocol.packages.server.PacketChatMessage"); Connection.receiveFake(PacketChatMessage.PACKET_ID, [PacketClient[chatType], playerId, message]); }
     };
     var Est = Gs.est;

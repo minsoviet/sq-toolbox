@@ -99,6 +99,15 @@ module.exports = function(options) {
 		})
 	}
 
+	function runScriptFast(client, isHaxe, script) {
+		client.sendData('PacketRoundCommand', {
+			playerId: client.uid,
+			dataJson: {
+				'est__fastActivate': ['runScript', isHaxe, script]
+			}
+		})
+	}
+
 	function runExternalScript(client, script) {
 		client.sendData('PacketRoundCommand', {
 			playerId: client.uid,
@@ -369,8 +378,9 @@ module.exports = function(options) {
 			updateSetting(client, setting[0], client.settings[setting[0]], true)
 		}
 		saveSettings(client)
+		if (!client.storage.injected)
+			client.storage.noFastInject = true
 		Logger.info('server', `Вы вошли как ${getPlayerMention(client, client.uid)}`)
-		showMessage(client, 'Для полной активации функций нужно попасть на локацию')
 	}
 
 	function handleLoginServerPacket(client, packet, buffer) {
@@ -379,6 +389,9 @@ module.exports = function(options) {
 		client.uid = packet.data.innerId
 		if (options.local.saveLoginData)
 			fs.writeFileSync(options.local.cacheDir + '/loginData' + client.uid + '.txt', client.storage.loginData, { encoding: 'utf8', flag: 'w+'})
+		client.defer.push(function() {
+			runScriptFast(client, true, scripts.inject)
+		})
 		return false
 	}
 
@@ -587,6 +600,7 @@ module.exports = function(options) {
 						ignorePacket = true
 					break
 				case PacketServer.ROUND_START:
+					console.log('ВНИМАНИЕ ЭНКА ПОТРАЧЕНА!!!')
 					spy.state = 1
 					client.proxy.sendData('LEAVE')
 					return true
@@ -666,8 +680,8 @@ module.exports = function(options) {
 		}
 		if (!client.player.moderator) {
 			let spy = client.storage.spy
-			if (spy && spy.state === 1 && 'oldRoom' in spy) {
-				let oldPlayers = spy.oldRoom.players
+			if (spy && spy.state === 1 && 'oldPlayers' in spy) {
+				let oldPlayers = spy.oldPlayers
 				for (let playerId of players) {
 					if (oldPlayers.indexOf(playerId) === -1) {
 						handleRoomJoinServerPacket(client, {data: playerId})
@@ -716,9 +730,12 @@ module.exports = function(options) {
 
 	function handleRoomJoinServerPacket(client, packet, buffer) {
 		let {
-			playerId
+			playerId,
+			isPlaying
 		} = packet.data
 		client.room.players.push(playerId)
+		if (isPlaying)
+			client.round.players.push(playerId)
 		if (client.settings.logRoom) {
 			Logger.info('server', `${getPlayerMention(client, playerId)} вошел в комнату`)
 		}
@@ -748,7 +765,7 @@ module.exports = function(options) {
 						client.proxy.sendData('PLAY_WITH', spy.playerId)
 					}
 					spy.state = 1
-					spy.oldPlayers = client.players
+					spy.oldPlayers = client.room.players.slice()
 					return true
 				}
 			}
@@ -1068,8 +1085,9 @@ module.exports = function(options) {
 							runScript(client, true, scripts.setHotkeys)
 							runScript(client, true, scripts.setHighlightObjects)
 							runScript(client, true, 'Est.onSettingsUpdate();')
-							runScript(client, true, 'Est.onChangeRound();');
-							showMessage(client, 'Успешное внедрение в игру, все функции активны')
+							runScript(client, true, 'Est.onChangeRound();')
+							if (!client.storage.noFastInject)
+								showMessage(client, 'Успешное внедрение в игру, все функции активны')
 					}
 					break
 				case 'updateSetting':
@@ -1409,7 +1427,8 @@ module.exports = function(options) {
 		if (client.player.moderator)
 			return false
 		if (client.storage.spy) {
-			client.proxy.sendData('LEAVE')
+			if (client.room.in)
+				client.proxy.sendData('LEAVE')
 			delete client.storage.spy
 		}
 		return false
