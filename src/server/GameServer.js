@@ -779,7 +779,7 @@ module.exports = function(options) {
 			let spy = client.storage.spy
 			if (spy && spy.playerId === playerId) {
 				showMessage(client, `${getPlayerMention(client, playerId)} вышел из локации`)
-				if (client.room.players.length == 1) {
+				if (client.room.players.length === 1) {
 					delete client.storage.spy
 					client.proxy.sendData('LEAVE')
 				} else {
@@ -892,21 +892,29 @@ module.exports = function(options) {
 	}
 
 	function handleRoundCastBeginServerPacket(client, packet, buffer) {
+		let {
+			playerId
+		} = packet.data
 		for (player of client.round.players)
 			client.round.mapObjects[player] = (client.round.mapObjects[player] || 0) + 1
+		if (client.settings.ignoreShamanCast)
+			return client.storage.shamans.indexOf(playerId) !== -1
 		return false
 	}
 
 	function handleRoundCastEndServerPacket(client, packet, buffer) {
 		let {
+			playerId,
 			success
 		} = packet.data
-		if (!success) {
-			for (player of client.round.players) {
-				if (client.round.mapObjects[player])
-					client.round.mapObjects[player]--
-			}
+		if (!success)
+			return false
+		for (player of client.round.players) {
+			if (client.round.mapObjects[player])
+				client.round.mapObjects[player]--
 		}
+		if (client.settings.ignoreShamanCast)
+			return client.storage.shamans.indexOf(playerId) !== -1
 		return false
 	}
 

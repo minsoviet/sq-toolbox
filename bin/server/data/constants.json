@@ -26,6 +26,7 @@
         ["ignoreInvalidObjects", "Игн. невалидн. об-ы", true],
         ["createBeforeDestroy", "Игн. удал. чуж. об-в", false],
         ["preserveMapObjects", "Игн. удал. об-в карты", false],
+        ["ignoreShamanCast", "Игн. каст шамана", false],
         ["ignoreRoomChat", "Игн. игровой чат", false],
         ["ignoreGag", "Игн. кляп", false],
         ["showSensors", "Отобр. сенсоры", false],
