@@ -404,9 +404,7 @@ module.exports = function(options) {
 			}
 			if (onlineChanged) {
 				if (player.online && client.settings.warnModerators) {
-					showMessage(client, 'ВНИМАНИЕ!!! БУДЬТЕ ОСТОРОЖНЫ!!!\n' +
-						'\n' +
-						constructPlayerMention(player) + ' в игре')
+					showMessage(client, constructPlayerMention(player) + ' в игре')
 				}
 				if (client.settings.notifyModerators && client.room.in) {
 					let message = '<span class=\'color1\'>Вышел из игры</span>'
@@ -584,7 +582,7 @@ module.exports = function(options) {
 							return
 						spy.state = 3
 						client.proxy.sendData('LEAVE')
-					}, delay - 1000)
+					}, delay - 3000)
 					packet.data.type = PacketServer.ROUND_PLAYING
 					packet.data.delay = packet.data.delay + packet.data.mapDuration
 					break
@@ -598,10 +596,9 @@ module.exports = function(options) {
 						ignorePacket = true
 					break
 				case PacketServer.ROUND_START:
-					console.log('ВНИМАНИЕ ЭНКА ПОТРАЧЕНА!!!')
 					spy.state = 1
 					client.proxy.sendData('LEAVE')
-					return true
+					ignorePacket = true
 			}
 		}
 		switch (type) {
@@ -611,7 +608,8 @@ module.exports = function(options) {
 				client.round = {
 					in: false,
 					players: client.room.players.slice(),
-					mapObjects: {}
+					mapObjects: {},
+					moderators: {}
 				}
 				break
 			case PacketServer.ROUND_PLAYING:
@@ -673,10 +671,6 @@ module.exports = function(options) {
 			players,
 			isPrivate
 		} = packet.data
-		client.room = {
-			in: true,
-			players: [client.uid]
-		}
 		if (!client.player.moderator) {
 			let spy = client.storage.spy
 			if (spy && spy.state === 1 && 'oldPlayers' in spy) {
@@ -693,6 +687,10 @@ module.exports = function(options) {
 				}
 				return false
 			}
+		}
+		client.room = {
+			in: true,
+			players: [client.uid]
 		}
 		if (client.settings.logRoom) {
 			let mentions = []
@@ -759,7 +757,7 @@ module.exports = function(options) {
 					if (spy.state === 3) {
 						setTimeout(function() {
 							client.proxy.sendData('PLAY_WITH', spy.playerId)
-						}, 1000)
+						}, 3000)
 					} else {
 						client.proxy.sendData('PLAY_WITH', spy.playerId)
 					}
@@ -815,9 +813,7 @@ module.exports = function(options) {
 		if (constants.moderators.indexOf(playerId) !== -1 && client.room.players.indexOf(playerId) === -1 && !client.round.moderators[playerId]) {
 			client.round.moderators[playerId] = true
 			if (client.settings.warnModerators) {
-				showMessage(client, 'ВНИМАНИЕ!!! БУДЬТЕ ОСТОРОЖНЫ!!!\n' +
-					'\n' +
-					getPlayerMention(client, playerId) + ' наблюдает')
+				showMessage(client, `${getPlayerMention(client, playerId)} наблюдает`)
 			}
 			if (client.settings.notifyModerators) {
 				client.sendData('PacketChatMessage', {
@@ -922,7 +918,6 @@ module.exports = function(options) {
 			return false
 		switch(type) {
 			case PacketServer.PLAY_OFFLINE:
-			case PacketServer.PLAY_FAILED:
 			case PacketServer.NOT_EXIST:
 			case PacketServer.FULL_ROOM:
 			case PacketServer.NOT_IN_CLAN:
@@ -930,6 +925,10 @@ module.exports = function(options) {
 			case PacketServer.LOW_ENERGY:
 				client.sendData('PacketRoomLeave', {playerId: client.uid})
 	            delete client.storage.spy
+	            break
+	        case PacketServer.PLAY_FAILED:
+	        	let player = getPlayerInfo(client, client.storage.spy.playerId)
+	        	return !player.moderator && client.room.in
 	    }
 		return false
 	}
