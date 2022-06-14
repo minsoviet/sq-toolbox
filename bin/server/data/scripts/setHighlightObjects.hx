@@ -1,4 +1,4 @@
-function updateHighlightObjects(dt) {
+function updateHighlight(dt) {
 	var Gs = Game.self;
 	var Est = Gs.est;
 	var settings = Est.settings;
@@ -25,9 +25,11 @@ function updateHighlightObjects(dt) {
 			var dist = gameObjects[i].position.Copy();
 			dist.Subtract(pos);
 			var distLen = dist.Length();
-			if(minDist == -1 || distLen < minDist) {
-				objectId = i;
-				minDist = distLen;
+			if(distLen < 50) {
+				if(minDist == -1 || distLen < minDist) {
+					objectId = i;
+					minDist = distLen;
+				}
 			}
 		} catch(e:Dynamic) {};
 		i++;
@@ -48,4 +50,4 @@ function updateHighlightObjects(dt) {
 		Est.lastHighlightObjectId = objectId;
 	}
 }
-Est.setInterval(updateHighlightObjects, 100);
+Est.setInterval(updateHighlight, 250);
