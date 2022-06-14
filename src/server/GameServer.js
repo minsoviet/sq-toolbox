@@ -378,8 +378,6 @@ module.exports = function(options) {
 			updateSetting(client, setting[0], client.settings[setting[0]], true)
 		}
 		saveSettings(client)
-		if (!client.storage.injected)
-			client.storage.noFastInject = true
 		Logger.info('server', `Вы вошли как ${getPlayerMention(client, client.uid)}`)
 	}
 
@@ -390,7 +388,7 @@ module.exports = function(options) {
 		if (options.local.saveLoginData)
 			fs.writeFileSync(options.local.cacheDir + '/loginData' + client.uid + '.txt', client.storage.loginData, { encoding: 'utf8', flag: 'w+'})
 		client.defer.push(function() {
-			runScriptFast(client, true, scripts.inject)
+			runScriptFast(client, true, 'if(!Reflect.hasField(Game.self, "est")) {' + scripts.inject + 'Gs.est.sendData(Gs.est.packetId, "{\\"est\\":[\\"status\\",0,true]}");};')
 		})
 		return false
 	}
@@ -630,9 +628,10 @@ module.exports = function(options) {
 				} else {
 					client.defer.push(function() {
 						client.round.beingInjected = true
-						createMapTimer(client, true, scripts.inject)
-						createMapSensor(client, true, scripts.inject)
-						createMapSensorRect(client, true, scripts.inject)
+						let inject = 'if(!Reflect.hasField(Game.self, "est")) {' + scripts.inject + 'Gs.est.sendData(Gs.est.packetId, "{\\"est\\":[\\"status\\",0,true]}");};'
+						createMapTimer(client, true, inject)
+						createMapSensor(client, true, inject)
+						createMapSensorRect(client, true, inject)
 					})
 				}
 				if (!spying && client.settings.autoHollow) {
@@ -684,12 +683,12 @@ module.exports = function(options) {
 				let oldPlayers = spy.oldPlayers
 				for (let playerId of players) {
 					if (oldPlayers.indexOf(playerId) === -1) {
-						handleRoomJoinServerPacket(client, {data: playerId})
+						handleRoomJoinServerPacket(client, {data: {playerId: playerId}})
 					}
 				}
 				for (let playerId of oldPlayers) {
 					if (players.indexOf(playerId) === -1) {
-						handleRoomLeaveServerPacket(client, {data: playerId})
+						handleRoomLeaveServerPacket(client, {data: {playerId: playerId}})
 					}
 				}
 				return false
@@ -1068,7 +1067,10 @@ module.exports = function(options) {
 						break
 					switch (data['est'][1]) {
 						case 0:
-							delete client.round.beingInjected
+							if (data['est'][2])
+								client.storage.fastInject = true
+							else
+								delete client.round.beingInjected
 							var script = 'Est.sendData(Est.packetId, "{\\"est\\":[\\"status\\",1]}");'
 							runScript(client, true, script)
 							break
@@ -1086,7 +1088,7 @@ module.exports = function(options) {
 							runScript(client, true, scripts.setHighlightObjects)
 							runScript(client, true, 'Est.onSettingsUpdate();')
 							runScript(client, true, 'Est.onChangeRound();')
-							if (!client.storage.noFastInject)
+							if (!client.storage.fastInject)
 								showMessage(client, 'Успешное внедрение в игру, все функции активны')
 					}
 					break

@@ -17,9 +17,7 @@ function onChangeRound() {
 			}
 		}
 	}
-	if(Reflect.hasField(Est, "lastHighlightObjectId")) {
-		Est.lastHighlightObjectId = -1;
-	}
+	Est.lastHighlightObjectId = -1;
 	Est.gameObjectsDeleted = [];
 }
 Est.onChangeRound = onChangeRound;

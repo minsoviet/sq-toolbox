@@ -59,6 +59,17 @@ function onAnyUpdate(dt) {
 	if(Hs == null) {
 		return;
 	}
+	if(settings.alwaysImmortal) {
+		Hs.immortal = true;
+	}
+	if(settings.ghostMode) {
+		Hs.ghost = true;
+	}
+	if(settings.infJumps) {
+		while(Hs.maxInAirJumps < 1000) {
+			Hs.maxInAirJumps++;
+		}
+	}
 	var PerkShamanFactory = Type.resolveClass("game.mainGame.perks.shaman.PerkShamanFactory");
 	var ShamanToolBar = Type.resolveClass("game.mainGame.perks.shaman.ui.ShamanToolBar");
 	var perkController = Hs.perkController;
