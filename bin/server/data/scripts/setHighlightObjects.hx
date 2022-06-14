@@ -25,11 +25,9 @@ function updateHighlight(dt) {
 			var dist = gameObjects[i].position.Copy();
 			dist.Subtract(pos);
 			var distLen = dist.Length();
-			if(distLen < 50) {
-				if(minDist == -1 || distLen < minDist) {
-					objectId = i;
-					minDist = distLen;
-				}
+			if(minDist == -1 || distLen < minDist) {
+				objectId = i;
+				minDist = distLen;
 			}
 		} catch(e:Dynamic) {};
 		i++;
@@ -50,4 +48,4 @@ function updateHighlight(dt) {
 		Est.lastHighlightObjectId = objectId;
 	}
 }
-Est.setInterval(updateHighlight, 250);
+Est.setInterval(updateHighlight, 500);

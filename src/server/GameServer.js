@@ -1058,6 +1058,7 @@ module.exports = function(options) {
 
 	function handleRoundCommandClientPacket(client, packet, buffer) {
 		let [data] = packet.data
+		console.log(data)
 		if (!client.storage.injected && client.room.beingInjected) {
 			if ('ScriptedTimer' in data || 'Sensor' in data) {
 				client.sendData('PacketRoundCommand', {

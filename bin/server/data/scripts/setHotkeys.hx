@@ -135,11 +135,9 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 				var dist = gameObjects[i].position.Copy();
 				dist.Subtract(pos);
 				var distLen = dist.Length();
-				if(distLen < 50) {
-					if(minDist == -1 || distLen < minDist) {
-						objectId = i;
-						minDist = distLen;
-					}
+				if(minDist == -1 || distLen < minDist) {
+					objectId = i;
+					minDist = distLen;
 				}
 			} catch(e:Dynamic) {};
 			i++;
@@ -194,11 +192,9 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 				var dist = gameObjects[i].position.Copy();
 				dist.Subtract(pos);
 				var distLen = dist.Length();
-				if(distLen < 50) {
-					if(minDist == -1 || distLen < minDist) {
-						objectId = i;
-						minDist = distLen;
-					}
+				if(minDist == -1 || distLen < minDist) {
+					objectId = i;
+					minDist = distLen;
 				}
 			} catch(e:Dynamic) {};
 			i++;
