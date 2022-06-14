@@ -559,26 +559,37 @@ module.exports = function(options) {
 		let {
 			type
 		} = packet.data
-		console.log(type)
-		if (!client.player.moderator) {
+		var ignorePacket = false
+		var spying = !client.player.moderator && client.storage.spy
+		if (spying) {
 			var spy = client.storage.spy
-			if (spy) {
-				switch(type) {
-					case PacketServer.ROUND_STARTING:
-						console.log("round is starting, leave")
-						spy.state = 0
+			switch(type) {
+				case PacketServer.ROUND_STARTING:
+					spy.state = 2
+					spy.lastMapId = packet.data.mapId
+					let delay = packet.data.delay * 1000
+					setTimeout(function() {
+						if (spy.state !== 2)
+							return
+						spy.state = 3
 						client.proxy.sendData('LEAVE')
-						return true
-					case PacketServer.ROUND_WAITING:
-					case PacketServer.ROUND_RESULTS:
-					case PacketServer.ROUND_PLAYING:
-						console.log("success spying")
-						spy.state = 1
-						break
-					case PacketServer.ROUND_START:
-						console.log("got ingame, leaving, ENERGY LOST!!!")
-						client.proxy.sendData('LEAVE')
-				}
+					}, delay - 1000)
+					packet.data.type = PacketServer.ROUND_PLAYING
+					packet.data.delay = packet.data.delay + packet.data.mapDuration
+					break
+				case PacketServer.ROUND_WAITING:
+				case PacketServer.ROUND_RESULTS:
+					spy.state = 1
+					break
+				case PacketServer.ROUND_PLAYING:
+					spy.state = 1
+					if ('mapData' in packet.data && spy.lastMapId === packet.data.mapId)
+						ignorePacket = true
+					break
+				case PacketServer.ROUND_START:
+					spy.state = 1
+					client.proxy.sendData('LEAVE')
+					return true
 			}
 		}
 		switch (type) {
@@ -601,16 +612,16 @@ module.exports = function(options) {
 					moderators: {}
 				}
 				if (client.storage.injected) {
-					client.round.beingInjected = true
 					runScript(client, true, 'Est.onChangeRound();')
 				} else {
 					client.defer.push(function() {
+						client.round.beingInjected = true
 						createMapTimer(client, true, scripts.inject)
 						createMapSensor(client, true, scripts.inject)
 						createMapSensorRect(client, true, scripts.inject)
 					})
 				}
-				if (client.settings.autoHollow) {
+				if (!spying && client.settings.autoHollow) {
 					setTimeout(function() {
 						if (!client.round.in)
 							return
@@ -635,11 +646,11 @@ module.exports = function(options) {
 					}, 3750)
 				}
 		}
-		if (client.handlers.onRoomRound) {
+		if (!spying && client.handlers.onRoomRound) {
 			client.handlers.onRoomRound(packet, buffer)
 			delete client.handlers.onRoomRound
 		}
-		return false
+		return ignorePacket
 	}
 
 	function handleRoomServerPacket(client, packet, buffer) {
@@ -652,6 +663,23 @@ module.exports = function(options) {
 		client.room = {
 			in: true,
 			players: [client.uid]
+		}
+		if (!client.player.moderator) {
+			let spy = client.storage.spy
+			if (spy && spy.state === 1 && 'oldRoom' in spy) {
+				let oldPlayers = spy.oldRoom.players
+				for (let playerId of players) {
+					if (oldPlayers.indexOf(playerId) === -1) {
+						handleRoomJoinServerPacket(client, {data: playerId})
+					}
+				}
+				for (let playerId of oldPlayers) {
+					if (players.indexOf(playerId) === -1) {
+						handleRoomLeaveServerPacket(client, {data: playerId})
+					}
+				}
+				return false
+			}
 		}
 		if (client.settings.logRoom) {
 			let mentions = []
@@ -709,26 +737,48 @@ module.exports = function(options) {
 			playerId
 		} = packet.data
 		if (playerId === client.uid) {
+			if (!client.player.moderator) {
+				let spy = client.storage.spy
+				if (spy && spy.state !== 0) {
+					if (spy.state === 3) {
+						setTimeout(function() {
+							client.proxy.sendData('PLAY_WITH', spy.playerId)
+						}, 1000)
+					} else {
+						client.proxy.sendData('PLAY_WITH', spy.playerId)
+					}
+					spy.state = 1
+					spy.oldPlayers = client.players
+					return true
+				}
+			}
 			client.room = {
 				in: false
 			}
 			client.round = {
 				in: false
 			}
-			if (!client.player.moderator) {
-				let spy = client.storage.spy
-				if (spy && spy.state !== -1) {
-					console.log("following after exit")
-					spy.state = 0
-					setTimeout(function() {
-						client.proxy.sendData('PLAY_WITH', spy.id)
-					}, 250)
-					return true
-				}
-			}
 			return false
 		}
 		client.room.players.splice(client.room.players.indexOf(playerId), 1)
+		if (!client.player.moderator) {
+			let spy = client.storage.spy
+			if (spy && spy.playerId === playerId) {
+				showMessage(client, `${getPlayerMention(client, playerId)} вышел из локации`)
+				if (client.room.players.length == 1) {
+					delete client.storage.spy
+					client.proxy.sendData('LEAVE')
+				} else {
+					for (let playerId of client.room.players) {
+						if (playerId === client.uid)
+							continue
+						runScript(client, true, 'Type.resolveClass("screens.ScreenGame").start(' + playerId + ', false, true, 0);')
+						spy.playerId = playerId
+						break
+					}
+				}
+			}
+		}
 		if (client.settings.logRoom)
 			Logger.info('server', `${getPlayerMention(client, playerId)} вышел из комнаты`)
 		if (client.settings.notifyRoom) {
@@ -862,7 +912,6 @@ module.exports = function(options) {
 			case PacketServer.NOT_IN_CLAN:
 			case PacketServer.UNAVAIABLE_LOCATION:
 			case PacketServer.LOW_ENERGY:
-				console.log("exit spy cuz follow error")
 				client.sendData('PacketRoomLeave', {playerId: client.uid})
 	            delete client.storage.spy
 	    }
@@ -986,8 +1035,8 @@ module.exports = function(options) {
 
 	function handleRoundCommandClientPacket(client, packet, buffer) {
 		let [data] = packet.data
-		if ('ScriptedTimer' in data || 'Sensor' in data) {
-			if (client.round.beingInjected && !client.storage.injected) {
+		if (!client.storage.injected && client.room.beingInjected) {
+			if ('ScriptedTimer' in data || 'Sensor' in data) {
 				client.sendData('PacketRoundCommand', {
 					playerId: client.uid,
 					dataJson: data
@@ -1343,15 +1392,27 @@ module.exports = function(options) {
 		let [id] = packet.data
 		if (client.player.moderator)
 			return false
+		if (client.storage.spy)
+			return true
 		client.storage.spy = {
-			state: -1,
-			player: id
+			state: 0,
+			playerId: id
 		}
 		if (client.room.in)
 			client.proxy.sendData('LEAVE')
 		client.proxy.sendData('PLAY_WITH', id)
-		console.log("start spying for " + id)
 		return true
+	}
+
+	function handlePlayWithClientPacket(client, packet, buffer) {
+		let [id] = packet.data
+		if (client.player.moderator)
+			return false
+		if (client.storage.spy) {
+			client.proxy.sendData('LEAVE')
+			delete client.storage.spy
+		}
+		return false
 	}
 
 	function handleLeaveClientPacket(client, packet, buffer) {
