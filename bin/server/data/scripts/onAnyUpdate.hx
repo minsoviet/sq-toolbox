@@ -12,18 +12,21 @@ function onAnyUpdate(dt) {
 		}
 		return;
 	}
-	if(settings.ignoreGag) {
-		var time = Est.getTimer() / 1000;
-		if((Game.gagTime - time) > 1.5) {
-			if(!Reflect.hasField(Est, "oldGagTime") || Est.oldGagTime < Game.gagTime) {
-				Est.oldGagTime = Game.gagTime;
+	if(Est.gameObjectsNum == -1) {
+		var gameObjects = Sg.map.gameObjects();
+		if(gameObjects.length > 0) {
+			Est.gameObjectsNum = gameObjects.length;
+			Est.sendData(Est.packetId, JSON.stringify({est: ["updateData", "round.mapObjects", gameObjects.length]}));
+			if(settings.showSensors) {
+				var i = 0;
+				while(i < gameObjects.length) {
+					var className = Type.getClassName(Type.getClass(gameObjects[i]));
+					if(className == "game.mainGame.entity.editor.Sensor" || className == "game.mainGame.entity.editor.SensorRect") {
+						gameObjects[i].showDebug = true;
+					}
+					i++;
+				}
 			}
-			Game.gagTime = time + 1.5;
-			if(Game.chat != null) {
-				Game.chat.setGag();
-			}
-			var ChatCommon = Type.resolveClass("chat.ChatCommon");
-			ChatCommon.setGag();
 		}
 	}
 	if(settings.infRadius) {

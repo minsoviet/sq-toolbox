@@ -6,7 +6,7 @@ var menuDialog = Type.createInstance(DialogInfo, ["sq-toolbox", ""]);
 menuDialog.width = 460;
 menuDialog.height = 420;
 menuDialog.removeChildAt(2);
-Est.menu = menuDialog;
+Est.menuDialog = menuDialog;
 
 var settings = Est.settings;
 var settingsData = Est.constants.settingsData;
@@ -71,7 +71,7 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 	if(!e.ctrlKey || e.keyCode != Keyboard.M) {
 		return;
 	}
-	var menuDialog = Est.menu;
+	var menuDialog = Est.menuDialog;
 	if(menuDialog.visible) {
 		menuDialog.hide();
 	} else {

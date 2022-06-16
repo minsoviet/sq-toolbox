@@ -17,17 +17,118 @@ function onSettingsUpdate() {
 	if(isChanged("fakeModerator", null)) {
 		Gs.moderator = playerInfo.moderator || settings.fakeModerator;
 	}
-	if(isChanged("ignoreGag", null)) {
-		if(!settings.ignoreGag) {
-			var time = Est.getTimer() / 1000;
-			if(Reflect.hasField(Est, "oldGagTime") && Est.oldGagTime - time > 1.5) {
-				Game.gagTime = Est.oldGagTime;
-				if(Game.chat != null) {
-					Game.chat.setGag();
+	if(isChanged("noChatLimits", null)) {
+		var gameSprite = Game.gameSprite.getChildAt(0);
+		var Footers = gameSprite.getChildAt(1);
+		var FooterTop = Footers.getChildAt(0);
+		var ChatCommon = FooterTop.getChildAt(0);
+		var oldInputBoxCommon = ChatCommon.getChildAt(1);
+		var Chat = Game.chat;
+		var oldInputBoxGame = Chat.getChildAt(2);
+		if(!Reflect.hasField(Est, "oldInputBoxCommon")) {
+			var TextFormat = Type.resolveClass("flash.text.TextFormat");
+			var TextField = Type.resolveClass("flash.text.TextField");
+			var TextFieldType = Type.resolveClass("flash.text.TextFieldType");
+			var TextFieldUtil = Type.resolveClass("utils.TextFieldUtil");
+			var directionCommon = ChatCommon.getChildAt(0);
+			var inputFormatCommon = Type.createInstance(TextFormat, [GameField.DEFAULT_FONT, 12, 0xFF0000, true]);
+			// 13238271
+			inputFormatCommon.indent = directionCommon.textWidth - 15;
+			var inputBoxCommon = Type.createInstance(TextField, []);
+			inputBoxCommon.type = TextFieldType.INPUT;
+			inputBoxCommon.text = "";
+			inputBoxCommon.wordWrap = false;
+			inputBoxCommon.multiline = false;
+			inputBoxCommon.x = 28;
+			inputBoxCommon.y = 377;
+			inputBoxCommon.width = 215;
+			inputBoxCommon.height = 20;
+			inputBoxCommon.selectable = true;
+			inputBoxCommon.defaultTextFormat = inputFormatCommon;
+			inputBoxCommon.maxChars = 255;
+			TextFieldUtil.embedFonts(inputBoxCommon);
+			var directionGame = Chat.getChildAt(1);
+			var inputFormatGame = Type.createInstance(TextFormat, [GameField.DEFAULT_FONT, 13, 0xFF0000]);
+			inputFormatGame.indent = directionGame.textWidth - 15;
+			var inputBoxGame = Type.createInstance(TextField, []);
+			inputBoxGame.text = "";
+			inputBoxGame.type = TextFieldType.INPUT;
+		 	inputBoxGame.wordWrap = false;
+			inputBoxGame.multiline = false;
+			inputBoxGame.x = 14;
+		 	inputBoxGame.y = 3;
+		 	inputBoxGame.width = 240;
+		 	inputBoxGame.height = 65;
+		 	inputBoxGame.selectable = true;
+		 	inputBoxGame.defaultTextFormat = inputFormatGame;
+		 	inputBoxGame.maxChars = 255;
+			TextFieldUtil.embedFonts(inputBoxGame);
+			var Keyboard = Type.resolveClass("flash.ui.Keyboard");
+			var KeyboardEvent = Type.resolveClass("flash.events.KeyboardEvent");
+			inputBoxCommon.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
+				if(e.keyCode != Keyboard.ENTER) {
+					return;
 				}
-				var ChatCommon = Type.resolveClass("chat.ChatCommon");
-				ChatCommon.setGag();
-			}
+				var Screens = Type.resolveClass("screens.Screens");
+				var screen = Type.getClassName(Type.getClass(Screens.active));
+				if(screen == "screens.ScreenGame" || screen == "screens.ScreenLearning") {
+					return;
+				}
+				var message = inputBoxCommon.text;
+				inputBoxCommon.text = "";
+				var StringUtil = Type.resolveClass("utils.StringUtil");
+				message = StringUtil.trim(message);
+				if(message == "") {
+					return;
+				}
+				var PacketClient = Type.resolveClass("protocol.PacketClient");
+				Est.sendData(PacketClient.CHAT_MESSAGE, ChatCommon.currentChat.type, message);
+			});
+			inputBoxGame.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
+				if(e.keyCode != Keyboard.ENTER) {
+					return;
+				}
+				var Screens = Type.resolveClass("screens.Screens");
+				var screen = Type.getClassName(Type.getClass(Screens.active));
+				if(screen != "screens.ScreenGame") {
+					return;
+				}
+				var message = inputBoxGame.text;
+				inputBoxGame.text = "";
+				var StringUtil = Type.resolveClass("utils.StringUtil");
+				message = StringUtil.trim(message);
+				if(message == "") {
+					return;
+				}
+				var PacketClient = Type.resolveClass("protocol.PacketClient");
+				Est.sendData(PacketClient.CHAT_MESSAGE, 0, message);
+			});
+			Est.oldInputBoxCommon = inputBoxCommon;
+			Est.oldInputBoxGame = inputBoxGame;
+			Est.setInterval(function(dt) {
+				if(!settings.noChatLimits) {
+					return;
+				}
+				if(Game.stage.focus == Est.oldInputBoxCommon) {
+					Est.oldInputBoxCommon.text = "";
+					Game.stage.focus = inputBoxCommon;
+					return;
+				}
+				if(Game.stage.focus == Est.oldInputBoxGame) {
+					Est.oldInputBoxGame.text = "";
+					Game.stage.focus = inputBoxGame;
+				}
+			}, 100);
+		}
+		if(settings.noChatLimits || !isFirstRun) {
+			var newInputBoxCommon = Est.oldInputBoxCommon;
+			Est.oldInputBoxCommon = oldInputBoxCommon;
+			ChatCommon.removeChildAt(1);
+			ChatCommon.addChildAt(newInputBoxCommon, 1);
+			var newInputBoxGame = Est.oldInputBoxGame;
+			Est.oldInputBoxGame = oldInputBoxGame;
+			Chat.removeChildAt(2);
+			Chat.addChildAt(newInputBoxGame, 2);
 		}
 	}
 	var Sg = Type.resolveClass("game.mainGame.SquirrelGame").instance;

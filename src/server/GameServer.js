@@ -387,9 +387,6 @@ module.exports = function(options) {
 		client.uid = packet.data.innerId
 		if (options.local.saveLoginData)
 			fs.writeFileSync(options.local.cacheDir + '/loginData' + client.uid + '.txt', client.storage.loginData, { encoding: 'utf8', flag: 'w+'})
-		client.defer.push(function() {
-			runScriptFast(client, true, 'if(!Reflect.hasField(Game.self, "est")) {' + scripts.inject + 'Gs.est.sendData(Gs.est.packetId, "{\\"est\\":[\\"status\\",0,true]}");};')
-		})
 		return false
 	}
 
@@ -609,6 +606,7 @@ module.exports = function(options) {
 					in: false,
 					players: client.room.players.slice(),
 					mapObjects: {},
+					hollow: [],
 					moderators: {}
 				}
 				break
@@ -626,7 +624,7 @@ module.exports = function(options) {
 				} else {
 					client.defer.push(function() {
 						client.round.beingInjected = true
-						let inject = 'if(!Reflect.hasField(Game.self, "est")) {' + scripts.inject + 'Gs.est.sendData(Gs.est.packetId, "{\\"est\\":[\\"status\\",0,true]}");};'
+						let inject = 'if(!Reflect.hasField(Game.self, "est")) {' + scripts.inject + 'Gs.est.sendData(Gs.est.packetId, "{\\"est\\":[\\"state\\",0,false]}");};'
 						createMapTimer(client, true, inject)
 						createMapSensor(client, true, inject)
 						createMapSensorRect(client, true, inject)
@@ -1045,6 +1043,15 @@ module.exports = function(options) {
 		return false
 	}
 
+	function handleAbGuiActionClientPacket(client, packet, buffer) {
+		client.defer.push(function() {
+			setTimeout(function() {
+				runScriptFast(client, true, 'if(!Reflect.hasField(Game.self, "est")) {' + scripts.inject + 'Gs.est.sendData(Gs.est.packetId, "{\\"est\\":[\\"state\\",0,true]}");};')
+			}, 3000)
+		})
+		return false
+	}
+
 	function handleRoundSkillClientPacket(client, packet, buffer) {
 		let [code, activate, unk0, unk1] = packet.data
 		if (client.storage.cancelNextSkill && activate) {
@@ -1058,7 +1065,7 @@ module.exports = function(options) {
 
 	function handleRoundCommandClientPacket(client, packet, buffer) {
 		let [data] = packet.data
-		console.log(data)
+		// console.log(data)
 		if (!client.storage.injected && client.room.beingInjected) {
 			if ('ScriptedTimer' in data || 'Sensor' in data) {
 				client.sendData('PacketRoundCommand', {
@@ -1070,7 +1077,7 @@ module.exports = function(options) {
 		}
 		if ('est' in data) {
 			switch (data['est'][0]) {
-				case 'status':
+				case 'state':
 					if (client.storage.injected)
 						break
 					switch (data['est'][1]) {
@@ -1079,7 +1086,7 @@ module.exports = function(options) {
 								client.storage.fastInject = true
 							else
 								delete client.round.beingInjected
-							var script = 'Est.sendData(Est.packetId, "{\\"est\\":[\\"status\\",1]}");'
+							var script = 'Est.sendData(Est.packetId, "{\\"est\\":[\\"state\\",1]}");'
 							runScript(client, true, script)
 							break
 						case 1:
@@ -1417,18 +1424,18 @@ module.exports = function(options) {
 	}
 
 	function handleSpyForClientPacket(client, packet, buffer) {
-		let [id] = packet.data
+		let [playerId] = packet.data
 		if (client.player.moderator)
 			return false
-		if (client.storage.spy)
+		if (client.storage.spy && client.room.players.indexOf(playerId) !== 0)
 			return true
 		client.storage.spy = {
 			state: 0,
-			playerId: id
+			playerId: playerId
 		}
 		if (client.room.in)
 			client.proxy.sendData('LEAVE')
-		client.proxy.sendData('PLAY_WITH', id)
+		client.proxy.sendData('PLAY_WITH', playerId)
 		return true
 	}
 
@@ -1458,6 +1465,10 @@ module.exports = function(options) {
 				break
 			case 'LOGIN':
 				if (handleLoginClientPacket(client, packet, buffer))
+					return false
+				break
+			case 'AB_GUI_ACTION':
+				if (handleAbGuiActionClientPacket(client, packet, buffer))
 					return false
 				break
 			case 'ROUND_SKILL':
