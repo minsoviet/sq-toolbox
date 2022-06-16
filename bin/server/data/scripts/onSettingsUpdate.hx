@@ -17,7 +17,7 @@ function onSettingsUpdate() {
 	if(isChanged("fakeModerator", null)) {
 		Gs.moderator = playerInfo.moderator || settings.fakeModerator;
 	}
-	if(isChanged("noChatLimits", null)) {
+	if(isChanged("noChatRestrictions", null)) {
 		var gameSprite = Game.gameSprite.getChildAt(0);
 		var Footers = gameSprite.getChildAt(1);
 		var FooterTop = Footers.getChildAt(0);
@@ -106,7 +106,7 @@ function onSettingsUpdate() {
 			Est.oldInputBoxCommon = inputBoxCommon;
 			Est.oldInputBoxGame = inputBoxGame;
 			Est.setInterval(function(dt) {
-				if(!settings.noChatLimits) {
+				if(!settings.noChatRestrictions) {
 					return;
 				}
 				if(Game.stage.focus == Est.oldInputBoxCommon) {
@@ -120,7 +120,7 @@ function onSettingsUpdate() {
 				}
 			}, 100);
 		}
-		if(settings.noChatLimits || !isFirstRun) {
+		if(settings.noChatRestrictions || !isFirstRun) {
 			var newInputBoxCommon = Est.oldInputBoxCommon;
 			Est.oldInputBoxCommon = oldInputBoxCommon;
 			ChatCommon.removeChildAt(1);

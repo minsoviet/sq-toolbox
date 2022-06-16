@@ -22,7 +22,7 @@
         ["fakeVIP", "Виз. VIP", false],
         ["fakeLevel", "Виз. уровень", false],
         ["noModerators", "Скрывать модерки", false],
-        ["noChatLimits", "Откл. лимиты чата", false],
+        ["noChatRestrictions", "Откл. огр-я чата", false],
         ["ignoreSelfReports", "Игн. жалобы на игрока", false],
         ["ignoreInvalidObjects", "Игн. невалидн. об-ы", true],
         ["createBeforeDestroy", "Игн. удал. чуж. об-в", false],
