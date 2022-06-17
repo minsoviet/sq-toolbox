@@ -33,7 +33,8 @@ module.exports = function(options) {
 		onChangeRound: fs.readFileSync(options.local.dataDir + '/scripts/onChangeRound.hx', 'utf8'),
 		setMenu: fs.readFileSync(options.local.dataDir + '/scripts/setMenu.hx', 'utf8'),
 		setHotkeys: fs.readFileSync(options.local.dataDir + '/scripts/setHotkeys.hx', 'utf8'),
-		setHighlightObjects: fs.readFileSync(options.local.dataDir + '/scripts/setHighlightObjects.hx', 'utf8')
+		setHighlightObjects: fs.readFileSync(options.local.dataDir + '/scripts/setHighlightObjects.hx', 'utf8'),
+		setSpy: fs.readFileSync(options.local.dataDir + '/scripts/setSpy.hx', 'utf8')
 	}
 
 	function getTime() {
@@ -775,19 +776,23 @@ module.exports = function(options) {
 		client.room.players.splice(client.room.players.indexOf(playerId), 1)
 		if (!client.player.moderator) {
 			let spy = client.storage.spy
+			let showSpyDialog = function() {
+				runScript(client, true, `Est.showSpyDialog("${getPlayerMention(client, playerId)} вышел из локации", ${playerId});`)
+			}
 			if (spy && spy.playerId === playerId) {
-				showMessage(client, `${getPlayerMention(client, playerId)} вышел из локации`)
 				if (client.room.players.length === 1) {
 					delete client.storage.spy
 					client.proxy.sendData('LEAVE')
+					client.handlers.onAbGuiAction = showSpyDialog;
 				} else {
 					for (let playerId of client.room.players) {
 						if (playerId === client.uid)
 							continue
-						runScript(client, true, 'Type.resolveClass("screens.ScreenGame").start(' + playerId + ', false, true, 0);')
+						runScript(client, true, `Est.startSpy(${playerId});`)
 						spy.playerId = playerId
 						break
 					}
+					showSpyDialog();
 				}
 			}
 		}
@@ -1044,10 +1049,16 @@ module.exports = function(options) {
 	}
 
 	function handleAbGuiActionClientPacket(client, packet, buffer) {
+		if (client.handlers.onAbGuiAction) {
+			client.handlers.onAbGuiAction(packet, buffer)
+			delete client.handlers.onAbGuiAction
+		}
+		if (client.storage.injected)
+			return;
 		client.defer.push(function() {
 			setTimeout(function() {
 				runScriptFast(client, true, 'if(!Reflect.hasField(Game.self, "est")) {' + scripts.inject + 'Gs.est.sendData(Gs.est.packetId, "{\\"est\\":[\\"state\\",0,true]}");};')
-			}, 3000)
+			}, 5000)
 		})
 		return false
 	}
@@ -1101,6 +1112,7 @@ module.exports = function(options) {
 							runScript(client, true, scripts.setMenu)
 							runScript(client, true, scripts.setHotkeys)
 							runScript(client, true, scripts.setHighlightObjects)
+							runScript(client, true, scripts.setSpy)
 							runScript(client, true, 'Est.onSettingsUpdate();')
 							runScript(client, true, 'Est.onChangeRound();')
 							if (!client.storage.fastInject)
