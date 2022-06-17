@@ -31,7 +31,7 @@ function onSettingsUpdate() {
 			var TextFieldType = Type.resolveClass("flash.text.TextFieldType");
 			var TextFieldUtil = Type.resolveClass("utils.TextFieldUtil");
 			var directionCommon = ChatCommon.getChildAt(0);
-			var inputFormatCommon = Type.createInstance(TextFormat, [GameField.DEFAULT_FONT, 12, 16763337, true]);
+			var inputFormatCommon = Type.createInstance(TextFormat, [GameField.DEFAULT_FONT, 12, 14513782, true]);
 			inputFormatCommon.indent = directionCommon.textWidth - 15;
 			var inputBoxCommon = Type.createInstance(TextField, []);
 			inputBoxCommon.type = TextFieldType.INPUT;
@@ -47,7 +47,7 @@ function onSettingsUpdate() {
 			inputBoxCommon.maxChars = 128;
 			TextFieldUtil.embedFonts(inputBoxCommon);
 			var directionGame = Chat.getChildAt(1);
-			var inputFormatGame = Type.createInstance(TextFormat, [GameField.DEFAULT_FONT, 13, 0xFF0000]);
+			var inputFormatGame = Type.createInstance(TextFormat, [GameField.DEFAULT_FONT, 13, 11345952]);
 			inputFormatGame.indent = directionGame.textWidth - 15;
 			var inputBoxGame = Type.createInstance(TextField, []);
 			inputBoxGame.text = "";
