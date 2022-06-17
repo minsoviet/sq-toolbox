@@ -13,7 +13,7 @@ Est.showSpyDialog = function(text, playerId) {
 		if(screen == "screens.ScreenGame") {
 			Est.sendData(PacketClient.LEAVE);
 		}
-		Est.setTimeout(functin(dt) {
+		Est.setTimeout(function(dt) {
 			Est.startSpy(playerId);
 		}, 3000);
 	}
