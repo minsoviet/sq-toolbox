@@ -107,13 +107,23 @@ function onSettingsUpdate() {
 					return;
 				}
 				if(Game.stage.focus == Est.oldInputBoxCommon) {
-					inputBoxCommon.text = "";
-					Game.stage.focus = inputBoxCommon;
+					if(!ChatCommon.visible) {
+						Game.stage.focus = Game.stage;
+					} else {
+						inputBoxCommon.text = "";
+						Est.oldInputBoxCommon.text = "";
+						Game.stage.focus = inputBoxCommon;
+					}
 					return;
 				}
 				if(Game.stage.focus == Est.oldInputBoxGame) {
-					inputBoxGame.text = "";
-					Game.stage.focus = inputBoxGame;
+					if(!Chat.visible) {
+						Game.stage.focus = Game.stage;
+					} else {
+						inputBoxGame.text = "";
+						Est.oldInputBoxGame.text = "";
+						Game.stage.focus = inputBoxGame;
+					}
 				}
 				var Hs = Hero.self;
 				if(Hs == null) {

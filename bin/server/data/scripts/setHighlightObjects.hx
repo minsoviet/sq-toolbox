@@ -48,4 +48,4 @@ function updateHighlight(dt) {
 		Est.lastHighlightObjectId = objectId;
 	}
 }
-Est.setInterval(updateHighlight, 500);
+Est.setInterval(updateHighlight, 250);
