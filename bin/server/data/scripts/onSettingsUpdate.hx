@@ -31,8 +31,7 @@ function onSettingsUpdate() {
 			var TextFieldType = Type.resolveClass("flash.text.TextFieldType");
 			var TextFieldUtil = Type.resolveClass("utils.TextFieldUtil");
 			var directionCommon = ChatCommon.getChildAt(0);
-			var inputFormatCommon = Type.createInstance(TextFormat, [GameField.DEFAULT_FONT, 12, 0xFF0000, true]);
-			// 13238271
+			var inputFormatCommon = Type.createInstance(TextFormat, [GameField.DEFAULT_FONT, 12, 16763337, true]);
 			inputFormatCommon.indent = directionCommon.textWidth - 15;
 			var inputBoxCommon = Type.createInstance(TextField, []);
 			inputBoxCommon.type = TextFieldType.INPUT;
@@ -113,6 +112,26 @@ function onSettingsUpdate() {
 				}
 				if(Game.stage.focus == Est.oldInputBoxGame) {
 					Game.stage.focus = inputBoxGame;
+				}
+				var Hs = Hero.self;
+				if(Hs == null) {
+					return;
+				}
+				if(Game.stage.focus == inputBoxGame) {
+					if(!Hs.isStoped) {
+						Hs.isStoped = true;
+						Est.inputStopedHero = true;
+					}
+					return;
+				}
+				if(!Reflect.hasField(Est, "inputStopedHero")) {
+					return;
+				}
+				if(Est.inputStopedHero) {
+					if(Hs.isStoped) {
+						Hs.isStoped = false;
+						Est.inputStopedHero = false;
+					}
 				}
 			}, 100);
 		}
