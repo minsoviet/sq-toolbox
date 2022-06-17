@@ -45,7 +45,7 @@ function onSettingsUpdate() {
 			inputBoxCommon.height = 20;
 			inputBoxCommon.selectable = true;
 			inputBoxCommon.defaultTextFormat = inputFormatCommon;
-			inputBoxCommon.maxChars = 255;
+			inputBoxCommon.maxChars = 128;
 			TextFieldUtil.embedFonts(inputBoxCommon);
 			var directionGame = Chat.getChildAt(1);
 			var inputFormatGame = Type.createInstance(TextFormat, [GameField.DEFAULT_FONT, 13, 0xFF0000]);
@@ -61,22 +61,22 @@ function onSettingsUpdate() {
 		 	inputBoxGame.height = 65;
 		 	inputBoxGame.selectable = true;
 		 	inputBoxGame.defaultTextFormat = inputFormatGame;
-		 	inputBoxGame.maxChars = 255;
+		 	inputBoxGame.maxChars = 128;
 			TextFieldUtil.embedFonts(inputBoxGame);
 			var Keyboard = Type.resolveClass("flash.ui.Keyboard");
 			var KeyboardEvent = Type.resolveClass("flash.events.KeyboardEvent");
+			var Screens = Type.resolveClass("screens.Screens");
+			var StringUtil = Type.resolveClass("utils.StringUtil");
 			inputBoxCommon.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 				if(e.keyCode != Keyboard.ENTER) {
 					return;
 				}
-				var Screens = Type.resolveClass("screens.Screens");
 				var screen = Type.getClassName(Type.getClass(Screens.active));
 				if(screen == "screens.ScreenGame" || screen == "screens.ScreenLearning") {
 					return;
 				}
 				var message = inputBoxCommon.text;
 				inputBoxCommon.text = "";
-				var StringUtil = Type.resolveClass("utils.StringUtil");
 				message = StringUtil.trim(message);
 				if(message == "") {
 					return;
@@ -88,14 +88,12 @@ function onSettingsUpdate() {
 				if(e.keyCode != Keyboard.ENTER) {
 					return;
 				}
-				var Screens = Type.resolveClass("screens.Screens");
 				var screen = Type.getClassName(Type.getClass(Screens.active));
 				if(screen != "screens.ScreenGame") {
 					return;
 				}
 				var message = inputBoxGame.text;
 				inputBoxGame.text = "";
-				var StringUtil = Type.resolveClass("utils.StringUtil");
 				message = StringUtil.trim(message);
 				if(message == "") {
 					return;
@@ -110,12 +108,10 @@ function onSettingsUpdate() {
 					return;
 				}
 				if(Game.stage.focus == Est.oldInputBoxCommon) {
-					Est.oldInputBoxCommon.text = "";
 					Game.stage.focus = inputBoxCommon;
 					return;
 				}
 				if(Game.stage.focus == Est.oldInputBoxGame) {
-					Est.oldInputBoxGame.text = "";
 					Game.stage.focus = inputBoxGame;
 				}
 			}, 100);
