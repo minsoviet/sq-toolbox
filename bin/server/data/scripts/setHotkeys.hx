@@ -146,7 +146,7 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 			var object = gameObjects[objectId];
 			if(e.ctrlKey) {
 				var EntityFactory = Type.resolveClass("game.mainGame.entity.EntityFactory");
-				Est.gameObjectsDeleted.push([true, [EntityFactory.getId(object), object.serialize(), true]]);
+				Est.gameObjectsDeleted.push([2, [EntityFactory.getId(object), object.serialize(), true]]);
 				Est.sendData(Est.packetId, "{\"Destroy\":[" + objectId + ",true]}");
 			} else {
 				var PacketClient = Type.resolveClass("protocol.PacketClient");
@@ -156,8 +156,8 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 					linearVelocityX = object.linearVelocity.x;
 					linearVelocityY = object.linearVelocity.y;
 				} catch(e:Dynamic) {};
-				Est.gameObjectsDeleted.push([false, [object.id, object.position.x, object.position.y, object.angle, linearVelocityX, linearVelocityY, object.angularVelocity]]);
-				object.position = Type.createInstance(b2Vec2, [-8192 - Math.random() * 8192, -8192 - Math.random() * 8192]);
+				Est.gameObjectsDeleted.push([0, [object.id, object.position.x, object.position.y, object.angle, linearVelocityX, linearVelocityY, object.angularVelocity]]);
+				object.position = Type.createInstance(b2Vec2, [-2048 - Math.random() * 2048, -2048 - Math.random() * 2048]);
 				Est.sendData(PacketClient.ROUND_SYNC, PacketClient.SYNC_PLAYER, [object.id, object.position.x, object.position.y, object.angle, linearVelocityX, linearVelocityY, object.angularVelocity]);
 			}
 		}
@@ -166,14 +166,14 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 	if(e.keyCode == Keyboard.NUMPAD_DIVIDE) {
         if(Reflect.hasField(Est, "gameObjectsDeleted") && Est.gameObjectsDeleted.length > 0) {
         	var deleted = Est.gameObjectsDeleted.pop();
-        	if(deleted[0]) {
-        		Est.sendData(Est.packetId, JSON.stringify({Create: deleted[1]}));
-        	} else {
+        	if(deleted[0] == 0) {
         		var PacketClient = Type.resolveClass("protocol.PacketClient");
         		var gameObjects = Sg.map.gameObjects();
         		var b2Vec2 = Type.resolveClass("Box2D.Common.Math.b2Vec2");
         		gameObjects[deleted[1][0]].position = Type.createInstance(b2Vec2, [deleted[1][1], deleted[1][2]]);
         		Est.sendData(PacketClient.ROUND_SYNC, PacketClient.SYNC_PLAYER, deleted[1]);
+        	} else if(deleted[0] == 1) {
+        		Est.sendData(Est.packetId, JSON.stringify({Create: deleted[1]}));
         	}
         }
         return;

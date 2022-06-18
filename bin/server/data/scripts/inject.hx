@@ -9,8 +9,6 @@ Gs.est = {
     constants: null,
     packetId: Type.resolveClass("protocol.PacketClient").ROUND_COMMAND,
     highlightObjectFilter: Type.createInstance(Type.resolveClass("flash.filters.GlowFilter"), [16711680, 1, 12, 12, 5, 1, true]),
-    lastHighlightObjectId: -1,
-    gameObjectsDeleted: [],
     executeHaXeScript: Type.resolveClass("hscript.HScript").ExecuteHaXeScript,
     call: Type.resolveClass("flash.external.ExternalInterface").call,
     addCallback: Type.resolveClass("flash.external.ExternalInterface").addCallback,

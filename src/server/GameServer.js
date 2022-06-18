@@ -852,7 +852,7 @@ module.exports = function(options) {
 				return true
 			}
 			if (client.settings.ignoreInvalidObjects && !isValidCreate(dataJson.Create)) {
-				if (client.settings.logBadObjects)
+				if (client.settings.logObjects)
 					Logger.info('server', `${getPlayerMention(client, playerId)} пытался создать объект Entity ${dataJson.Create[0].toString()}`)
 				if (client.settings.notifyObjects) {
 					client.sendData('PacketChatMessage', {
@@ -875,7 +875,7 @@ module.exports = function(options) {
 				}
 			} else {
 				if ((client.settings.ignoreInvalidObjects && !isValidDestroy(dataJson.Destroy)) || (client.settings.createBeforeDestroy && !client.round.mapObjects[playerId]) || (client.settings.preserveMapObjects && 'mapObjects' in client.round && dataJson.Destroy[0] < client.round.mapObjects)) {
-					if (client.settings.logBadObjects) {
+					if (client.settings.logObjects) {
 						Logger.info('server', `${getPlayerMention(client, playerId)} пытался удалить объект ID ${dataJson.Destroy[0].toString()}`)
 					}
 					if (client.settings.notifyObjects) {

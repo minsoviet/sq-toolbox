@@ -31,7 +31,6 @@
         ["ignoreRoomChat", "Игн. игровой чат", false],
         ["showSensors", "Отобр. сенсоры", false],
         ["autoHollow", "Авт. заход. в дупло", false],
-        ["autoSurrender", "Авт. капитулировать", false],
         ["autoCrash", "Авт. выкидывать игр.", false],
         ["warnModerators", "Предупр. о модер-ах", false],
         ["notifyRoom", "Увед. о комнате", true],
@@ -40,7 +39,7 @@
         ["notifyModerators", "Увед. о модер-ах", false],
         ["logRoom", "Лог. комнату", true],
         ["logReports", "Лог. жалобы", true],
-        ["logBadObjects", "Лог. объекты", true],
+        ["logObjects", "Лог. объекты", true],
         ["logModerators", "Лог. модер-ов", false]
     ],
     "moderators": [
