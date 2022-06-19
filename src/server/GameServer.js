@@ -34,7 +34,8 @@ module.exports = function(options) {
 		setMenu: fs.readFileSync(options.local.dataDir + '/scripts/setMenu.hx', 'utf8'),
 		setHotkeys: fs.readFileSync(options.local.dataDir + '/scripts/setHotkeys.hx', 'utf8'),
 		setHighlightObjects: fs.readFileSync(options.local.dataDir + '/scripts/setHighlightObjects.hx', 'utf8'),
-		setSpy: fs.readFileSync(options.local.dataDir + '/scripts/setSpy.hx', 'utf8')
+		setSpy: fs.readFileSync(options.local.dataDir + '/scripts/setSpy.hx', 'utf8'),
+		setCrash: fs.readFileSync(options.local.dataDir + '/scripts/setCrash.hx', 'utf8')
 	}
 
 	function getTime() {
@@ -118,7 +119,7 @@ module.exports = function(options) {
 		})
 	}
 
-	function crashMap(client) {
+	function kickMap(client) {
 		client.round.ignoreSelfCreates = (client.round.ignoreSelfCreates || 0) + 1
 		client.proxy.sendData('ROUND_COMMAND', {
 			'Create': [1, [
@@ -127,6 +128,11 @@ module.exports = function(options) {
 				]
 			], true]
 		})
+	}
+
+	function crashMap(client) {
+		client.round.ignoreSelfCreates = (client.round.ignoreSelfCreates || 0) + 3
+		runScript(client, true, 'Est.crashMap();');
 	}
 
 	function castMapTimer(client, isHaxe, script) {
@@ -211,6 +217,20 @@ module.exports = function(options) {
 					}]
 				})
 				break
+			case 'autoKick':
+				if (value) {
+					let autoKick = function() {
+						if (!client.room.in)
+							return
+						kickMap(client)
+					}
+					client.autoKickInterval = setInterval(autoKick, 250)
+				} else {
+					if (!('autoKickInterval' in client))
+						break
+					clearInterval(client.autoKickInterval)
+					delete client.autoKickInterval
+				}
 			case 'autoCrash':
 				if (value) {
 					let autoCrash = function() {
@@ -218,7 +238,7 @@ module.exports = function(options) {
 							return
 						crashMap(client)
 					}
-					client.autoCrashInterval = setInterval(autoCrash, 250)
+					client.autoCrashInterval = setInterval(autoCrash, 1750) // 250 fast planets
 				} else {
 					if (!('autoCrashInterval' in client))
 						break
@@ -312,6 +332,8 @@ module.exports = function(options) {
 		if (isOldStyle) {
 			if (typeof data[0][0] !== 'number' || typeof data[0][1] !== 'number')
 				return false
+			if (data[0][0] <= -2048 || data[0][1] <= -2048)
+				return false
 			if (typeof data[1] !== 'number')
 				return false
 			if (typeof data[2] !== 'boolean')
@@ -323,6 +345,8 @@ module.exports = function(options) {
 		if (!Array.isArray(data[0][0]))
 			return false
 		if (typeof data[0][0][0] !== 'number' || typeof data[0][0][1] !== 'number')
+			return false
+		if (data[0][0][0] <= -2048 || data[0][0][1] <= -2048)
 			return false
 		if (typeof data[0][1] !== 'number')
 			return false
@@ -852,14 +876,16 @@ module.exports = function(options) {
 				return true
 			}
 			if (client.settings.ignoreInvalidObjects && !isValidCreate(dataJson.Create)) {
-				if (client.settings.logObjects)
-					Logger.info('server', `${getPlayerMention(client, playerId)} пытался создать объект Entity ${dataJson.Create[0].toString()}`)
-				if (client.settings.notifyObjects) {
-					client.sendData('PacketChatMessage', {
-						chatType: 0,
-						playerId: playerId,
-						message: `<span class=\'color3\'>Пытался создать объект</span> <span class=\'color1\'>Entity ${dataJson.Create[0].toString()}</span>`
-					})
+				if (playerId !== client.uid) {
+					if (client.settings.logObjects)
+						Logger.info('server', `${getPlayerMention(client, playerId)} пытался создать объект Entity ${dataJson.Create[0].toString()}`)
+					if (client.settings.notifyObjects) {
+						client.sendData('PacketChatMessage', {
+							chatType: 0,
+							playerId: playerId,
+							message: `<span class=\'color3\'>Пытался создать объект</span> <span class=\'color1\'>Entity ${dataJson.Create[0].toString()}</span>`
+						})
+					}
 				}
 				return true
 			} else {
@@ -1113,6 +1139,7 @@ module.exports = function(options) {
 							runScript(client, true, scripts.setHotkeys)
 							runScript(client, true, scripts.setHighlightObjects)
 							runScript(client, true, scripts.setSpy)
+							runScript(client, true, scripts.setCrash)
 							runScript(client, true, 'Est.onSettingsUpdate();')
 							runScript(client, true, 'Est.onChangeRound();')
 							if (!client.storage.fastInject)
@@ -1165,6 +1192,7 @@ module.exports = function(options) {
 				return client.settings.infSquirrelItems && castType === PacketClient.CAST_SQUIRREL
 			if (!('lastCastEntityId' in client.storage))
 				return true
+			console.log([client.storage.lastCastEntityId, client.storage.lastCastObjectData, true])
 			client.proxy.sendData('ROUND_COMMAND', {
 				'Create': [client.storage.lastCastEntityId, client.storage.lastCastObjectData, true]
 			})
@@ -1268,6 +1296,12 @@ module.exports = function(options) {
 		showMessage(client, 'Следующая способность будет багнута отменой')
 	}
 
+	function handleHackKickCommand(client, chatType, args) {
+		if (!client.room.in)
+			return showMessage(client, 'Вы не на локации')
+		kickMap(client)
+	}
+
 	function handleHackCrashCommand(client, chatType, args) {
 		if (!client.room.in)
 			return showMessage(client, 'Вы не на локации')
@@ -1295,7 +1329,8 @@ module.exports = function(options) {
 					'\n' +
 					'.hack olympic — локация "Стадион"\n' +
 					'.hack skill — баг отмены способности\n' +
-					'.hack crash — невалидный объект\n' +
+					'.hack kick — кикнуть игроков с карты\n' +
+					'.hack crash — вызвать зависание игры\n' +
 					'.hack script [имя] — выполнить скрипт всем')
 				break
 			case 'olympic':
