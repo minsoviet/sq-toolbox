@@ -132,18 +132,11 @@ function onSettingsUpdate() {
 				if(Game.stage.focus == inputBoxGame) {
 					if(!Hs.isStoped) {
 						Hs.isStoped = true;
-						Est.inputStopedHero = true;
 					}
 					return;
 				}
-				if(!Reflect.hasField(Est, "inputStopedHero")) {
-					return;
-				}
-				if(Est.inputStopedHero) {
-					if(Hs.isStoped) {
-						Hs.isStoped = false;
-						Est.inputStopedHero = false;
-					}
+				if(Hs.isStoped) {
+					Hs.isStoped = false;
 				}
 			}, 100);
 		}
