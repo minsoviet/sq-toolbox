@@ -238,7 +238,7 @@ module.exports = function(options) {
 							return
 						crashMap(client)
 					}
-					client.autoCrashInterval = setInterval(autoCrash, 1250) // 250 fast planets
+					client.autoCrashInterval = setInterval(autoCrash, 1000) // 250 fast planets
 				} else {
 					if (!('autoCrashInterval' in client))
 						break
