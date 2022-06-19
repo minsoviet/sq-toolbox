@@ -1256,7 +1256,9 @@ module.exports = function(options) {
 	function handleHackOlympicCommand(client, chatType, args) {
 		if (client.room.in)
 			return showMessage(client, 'Вы уже на локации')
-		client.proxy.sendData('PLAY', 15, 0)
+		if (!client.storage.injected)
+			return client.proxy.sendData('PLAY', 15, 0)
+		runScript(client, true, 'Type.resolveClass("screens.ScreenGame").start(15, false, false, 0);');
 	}
 
 	function handleHackSkillCommand(client, chatType, args) {
