@@ -120,19 +120,17 @@ module.exports = function(options) {
 	}
 
 	function kickMap(client) {
-		client.round.ignoreSelfCreates = (client.round.ignoreSelfCreates || 0) + 1
-		client.proxy.sendData('ROUND_COMMAND', {
-			'Create': [1, [
-				[
-					[]
-				]
-			], true]
-		})
+		client.room.ignoreSelfCreates = (client.room.ignoreSelfCreates || 0) + 1
+		client.proxy.sendData('ROUND_COMMAND', {'Create': [1, [[[]]], true]})
 	}
 
 	function crashMap(client) {
-		client.round.ignoreSelfCreates = (client.round.ignoreSelfCreates || 0) + 3
+		client.room.ignoreSelfCreates = (client.room.ignoreSelfCreates || 0) + 3
 		runScript(client, true, 'Est.crashMap();');
+	}
+
+	function detectPlayers(client) {
+		client.proxy.sendData('ROUND_COMMAND', {'Create': [198, [[[-8192 - Math.random() * 8192, -8192 - Math.random() * 8192], 0, false, false, false, [0, 0], 0, '0', 1, false], [true, 1000]], true]})
 	}
 
 	function castMapTimer(client, isHaxe, script) {
@@ -225,6 +223,7 @@ module.exports = function(options) {
 						kickMap(client)
 					}
 					client.autoKickInterval = setInterval(autoKick, 250)
+					kickMap(client)
 				} else {
 					if (!('autoKickInterval' in client))
 						break
@@ -240,6 +239,7 @@ module.exports = function(options) {
 						crashMap(client)
 					}
 					client.autoCrashInterval = setInterval(autoCrash, 1000) // 250 fast planets
+					crashMap(client)
 				} else {
 					if (!('autoCrashInterval' in client))
 						break
@@ -251,28 +251,41 @@ module.exports = function(options) {
 			case 'notifyModerators':
 			case 'logModerators':
 				if (value) {
-					if ('checkModeratorsInterval' in client)
-						break
-					let checkModerators = function() {
-						let moderators = []
-						for (let moderator of constants.moderators) {
-							moderators.push([moderator])
+					if (!('checkModeratorsInterval' in client)) {
+						let checkModerators = function() {
+							let moderators = []
+							for (let moderator of constants.moderators) {
+								moderators.push([moderator])
+							}
+							client.proxy.sendData('REQUEST', moderators, 72)
 						}
-						client.proxy.sendData('REQUEST', moderators, 72)
+						client.checkModeratorsInterval = setInterval(checkModerators, 15000)
+						checkModerators()
 					}
-					client.checkModeratorsInterval = setInterval(checkModerators, 15000)
-					checkModerators()
+					if (!('detectModeratorsInterval' in client)) {
+						let detectModerators = function() {
+							if (!client.room.in)
+								return
+							detectPlayers(client)
+						}
+						client.detectModeratorsInterval = setInterval(detectModerators, 1000)
+						detectModerators()
+					}
 				} else {
-					if (!('checkModeratorsInterval' in client))
-						break
 					if (client.settings.warnModerators)
 						break
 					if (client.settings.notifyModerators)
 						break
 					if (client.settings.logModerators)
 						break
-					clearInterval(client.checkModeratorsInterval)
-					delete client.checkModeratorsInterval
+					if ('checkModeratorsInterval' in client) {
+						clearInterval(client.checkModeratorsInterval)
+						delete client.checkModeratorsInterval
+					}
+					if ('detectModeratorsInterval' in client) {
+						clearInterval(client.detectModeratorsInterval)
+						delete client.detectModeratorsInterval
+					}
 				}
 		}
 	}
@@ -633,8 +646,7 @@ module.exports = function(options) {
 					in: false,
 					players: client.room.players.slice(),
 					mapObjects: {},
-					hollow: [],
-					moderators: {}
+					hollow: []
 				}
 				break
 			case PacketServer.ROUND_PLAYING:
@@ -839,7 +851,7 @@ module.exports = function(options) {
 			playerId,
 			dataJson
 		} = packet.data
-		if (constants.moderators.indexOf(playerId) !== -1 && client.room.players.indexOf(playerId) === -1 && !client.round.moderators[playerId]) {
+		if (constants.moderators.indexOf(playerId) !== -1 && client.room.players.indexOf(playerId) === -1 && 'moderators' in client.round && !client.round.moderators[playerId]) {
 			client.round.moderators[playerId] = true
 			if (client.settings.warnModerators) {
 				showMessage(client, `${getPlayerMention(client, playerId)} наблюдает`)
@@ -873,8 +885,8 @@ module.exports = function(options) {
 				return true
 		}
 		if ('Create' in dataJson) {
-			if (playerId === client.uid && client.round.ignoreSelfCreates) {
-				client.round.ignoreSelfCreates--
+			if (playerId === client.uid && client.room.ignoreSelfCreates) {
+				client.room.ignoreSelfCreates--
 				return true
 			}
 			if (client.settings.ignoreInvalidObjects && !isValidCreate(dataJson.Create)) {
@@ -897,8 +909,8 @@ module.exports = function(options) {
 		}
 		if ('Destroy' in dataJson) {
 			if (playerId === client.uid) {
-				if (client.round.ignoreSelfDestroys) {
-					client.round.ignoreSelfDestroys--
+				if (client.room.ignoreSelfDestroys) {
+					client.room.ignoreSelfDestroys--
 					return true
 				}
 			} else {
@@ -1104,7 +1116,6 @@ module.exports = function(options) {
 
 	function handleRoundCommandClientPacket(client, packet, buffer) {
 		let [data] = packet.data
-		// console.log(data)
 		if (!client.storage.injected && client.room.beingInjected) {
 			if ('ScriptedTimer' in data || 'Sensor' in data) {
 				client.sendData('PacketRoundCommand', {
@@ -1194,7 +1205,6 @@ module.exports = function(options) {
 				return client.settings.infSquirrelItems && castType === PacketClient.CAST_SQUIRREL
 			if (!('lastCastEntityId' in client.storage))
 				return true
-			// console.log([client.storage.lastCastEntityId, client.storage.lastCastObjectData, true])
 			client.proxy.sendData('ROUND_COMMAND', {
 				'Create': [client.storage.lastCastEntityId, client.storage.lastCastObjectData, true]
 			})
