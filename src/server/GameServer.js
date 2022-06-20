@@ -266,6 +266,26 @@ module.exports = function(options) {
 						let detectModerators = function() {
 							if (!client.room.in)
 								return
+							let moderators = client.room.moderators
+							let time = getTime()
+							for (let moderator of constants.moderators) {
+								let moderatorTime = moderators[moderator]
+								if (!moderatorTime)
+									continue
+								if (time - moderator < 5000)
+									continue
+								delete moderators[moderator]
+								if (client.settings.notifyModerators) {
+									client.sendData('PacketChatMessage', {
+										chatType: 0,
+										playerId: moderator,
+										message: '<span class=\'color7\'>Больше не наблюдает</span>'
+									})
+								}
+								if (client.settings.logModerators) {
+									Logger.info('server', `${getPlayerMention(client, moderator)} больше не наблюдает`)
+								}
+							}
 							detectPlayers(client)
 						}
 						client.detectModeratorsInterval = setInterval(detectModerators, 1000)
@@ -655,8 +675,7 @@ module.exports = function(options) {
 					in: true,
 					players: client.room.players.slice(),
 					mapObjects: {},
-					hollow: [],
-					moderators: {}
+					hollow: []
 				}
 				if (client.storage.injected) {
 					runScript(client, true, 'Est.onChangeRound();')
@@ -727,7 +746,8 @@ module.exports = function(options) {
 		}
 		client.room = {
 			in: true,
-			players: [client.uid]
+			players: [client.uid],
+			moderators: {}
 		}
 		if (client.settings.logRoom) {
 			let mentions = []
@@ -851,8 +871,8 @@ module.exports = function(options) {
 			playerId,
 			dataJson
 		} = packet.data
-		if (constants.moderators.indexOf(playerId) !== -1 && client.room.players.indexOf(playerId) === -1 && 'moderators' in client.round && !client.round.moderators[playerId]) {
-			client.round.moderators[playerId] = true
+		if (constants.moderators.indexOf(playerId) !== -1 && client.room.players.indexOf(playerId) === -1 && 'moderators' in client.round && !client.room.moderators[playerId]) {
+			client.room.moderators[playerId] = Date.now()
 			if (client.settings.warnModerators) {
 				showMessage(client, `${getPlayerMention(client, playerId)} наблюдает`)
 			}
