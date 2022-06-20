@@ -231,6 +231,7 @@ module.exports = function(options) {
 					clearInterval(client.autoKickInterval)
 					delete client.autoKickInterval
 				}
+				break
 			case 'autoCrash':
 				if (value) {
 					let autoCrash = function() {
@@ -245,6 +246,7 @@ module.exports = function(options) {
 					clearInterval(client.autoCrashInterval)
 					delete client.autoCrashInterval
 				}
+				break
 			case 'warnModerators':
 			case 'notifyModerators':
 			case 'logModerators':
@@ -1192,7 +1194,7 @@ module.exports = function(options) {
 				return client.settings.infSquirrelItems && castType === PacketClient.CAST_SQUIRREL
 			if (!('lastCastEntityId' in client.storage))
 				return true
-			console.log([client.storage.lastCastEntityId, client.storage.lastCastObjectData, true])
+			// console.log([client.storage.lastCastEntityId, client.storage.lastCastObjectData, true])
 			client.proxy.sendData('ROUND_COMMAND', {
 				'Create': [client.storage.lastCastEntityId, client.storage.lastCastObjectData, true]
 			})
