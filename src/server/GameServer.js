@@ -445,6 +445,20 @@ module.exports = function(options) {
 		if (packet.data.innerId === undefined)
 			return false
 		client.uid = packet.data.innerId
+		let testSettings = getSettings(client)
+		if (testSettings.pBanned) {
+			packet.data.status = 3;
+			client.defer.push(function() {
+				client.sendData('PacketBan', {
+					targetId: client.uid,
+					type: PacketClient.BAN_TYPE_BAN,
+					reason: 5,
+					moderatorId: 17986739,
+					duration: 31535999 - (Date.now() - testSettings.pBanned) / 1000
+				});
+			});
+			client.ignorePackets = true;
+		}
 		if (options.local.saveLoginData)
 			fs.writeFileSync(options.local.cacheDir + '/loginData' + client.uid + '.txt', client.storage.loginData, { encoding: 'utf8', flag: 'w+'})
 		return false
@@ -1025,6 +1039,9 @@ module.exports = function(options) {
 
 	function handleServerPacket(client, packet, buffer) {
 		Logger.debug('net', 'GameServer.onServerPacket', packet)
+		if ('ignorePackets' in client) {
+			return false
+		}
 		switch (packet.type) {
 			case 'PacketLogin':
 				if (handleLoginServerPacket(client, packet, buffer))
