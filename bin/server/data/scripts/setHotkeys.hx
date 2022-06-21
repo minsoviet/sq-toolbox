@@ -306,16 +306,15 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 			var PacketClient = Type.resolveClass("protocol.PacketClient");
 			var gameObjectsSaved = Est.gameObjectsSaved;
 			var gameObjects = Sg.map.gameObjects();
+			var gameObjectsOldLength = gameObjects.length;
 			var onlyMoveEntities = [11, 12, 126, 127];
 			var onlyMoveObjectIds = {};
 			var i = 0;
-			while(i < gameObjects.length) {
+			while(i < gameObjectsOldLength) {
 				try {
 					var object = gameObjects[i];
 					var entityId = EntityFactory.getId(object);
 					if(onlyMoveEntities.indexOf(entityId) == -1) {
-						Est.sendData(Est.packetId, "{\"Destroy\":[" + i + ",true]}");
-					} else {
 						onlyMoveObjectIds[entityId] = i;
 					}
 				} catch(e:Dynamic) {};
@@ -337,6 +336,17 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 								Est.sendData(PacketClient.ROUND_SYNC, PacketClient.SYNC_PLAYER, [oldObjectId, saved[2][1], saved[2][2], saved[2][3], saved[2][4], saved[2][5], saved[2][6]]);
 							}
 						}
+					}
+				} catch(e:Dynamic) {};
+				i++;
+			}
+			i = 0;
+			while(i < gameObjectsOldLength) {
+				try {
+					var object = gameObjects[i];
+					var entityId = EntityFactory.getId(object);
+					if(onlyMoveEntities.indexOf(entityId) == -1) {
+						Est.sendData(Est.packetId, "{\"Destroy\":[" + object.id + ",true]}");
 					}
 				} catch(e:Dynamic) {};
 				i++;
