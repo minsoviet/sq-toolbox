@@ -273,6 +273,77 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
         }
         return;
 	}
+	if(e.keyCode == Keyboard.NUMPAD_5) {
+		var EntityFactory = Type.resolveClass("game.mainGame.entity.EntityFactory");
+		Est.gameObjectsSaved = [];
+        var gameObjects = Sg.map.gameObjects();
+        var onlyMoveObjects = [11, 12, 126, 127];
+		var i = 0;
+		while(i < gameObjects.length) {
+			try {
+				var object = gameObjects[i];
+				var entityId = EntityFactory.getId(object);
+				if(onlyMoveObjects.indexOf(entityId) == -1) {
+					Est.gameObjectsSaved.push([0, [entityId, object.serialize(), true]]);
+				} else {
+					var linearVelocityX = 0;
+					var linearVelocityY = 0;
+					try {
+						linearVelocityX = object.linearVelocity.x;
+						linearVelocityY = object.linearVelocity.y;
+					} catch(e:Dynamic) {};
+					Est.gameObjectsSaved.push([1, entityId, [object.id, object.position.x, object.position.y, object.angle, linearVelocityX, linearVelocityY, object.angularVelocity]]);
+				}
+			} catch(e:Dynamic) {};
+			i++;
+		}
+        return;
+	}
+	if(e.keyCode == Keyboard.NUMPAD_6) {
+		if(Reflect.hasField(Est, "gameObjectsSaved")) {
+			var EntityFactory = Type.resolveClass("game.mainGame.entity.EntityFactory");
+			var b2Vec2 = Type.resolveClass("Box2D.Common.Math.b2Vec2");
+			var PacketClient = Type.resolveClass("protocol.PacketClient");
+			var gameObjectsSaved = Est.gameObjectsSaved;
+			var gameObjects = Sg.map.gameObjects();
+			var onlyMoveEntities = [11, 12, 126, 127];
+			var onlyMoveObjectIds = {};
+			var i = 0;
+			while(i < gameObjects.length) {
+				try {
+					var object = gameObjects[i];
+					var entityId = EntityFactory.getId(object);
+					if(onlyMoveEntities.indexOf(entityId) == -1) {
+						Est.sendData(Est.packetId, "{\"Destroy\":[" + i + ",true]}");
+					} else {
+						onlyMoveObjectIds[entityId] = i;
+					}
+				} catch(e:Dynamic) {};
+				i++;
+			}
+			i = 0;
+			while(i < gameObjectsSaved.length) {
+				try {
+					var saved = gameObjectsSaved[i];
+					if(saved[0] == 0) {
+						Est.sendData(Est.packetId, JSON.stringify({Create: saved[1]}));
+					} else if(saved[0] == 1) {
+						var oldObjectId = onlyMoveObjectIds[saved[1]];
+						if(oldObjectId != null) {
+							var oldObject = gameObjects[oldObjectId];
+							if(oldObject != null) {
+								oldObject.position = Type.createInstance(b2Vec2, [saved[2][1], saved[2][2]]);
+								oldObject.angle = saved[2][3];
+								Est.sendData(PacketClient.ROUND_SYNC, PacketClient.SYNC_PLAYER, [oldObjectId, saved[2][1], saved[2][2], saved[2][3], saved[2][4], saved[2][5], saved[2][6]]);
+							}
+						}
+					}
+				} catch(e:Dynamic) {};
+				i++;
+			}
+		}
+        return;
+	}
 	var Hs = Hero.self;
 	if(Hs == null) {
 		return;

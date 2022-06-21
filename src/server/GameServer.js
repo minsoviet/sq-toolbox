@@ -125,13 +125,11 @@ module.exports = function(options) {
 	}
 
 	function crashMap(client) {
-		client.room.ignoreSelfCreates = (client.room.ignoreSelfCreates || 0) + 3
 		runScript(client, true, 'Est.crashMap();');
 	}
 
 	function detectPlayers(client) {
-		client.room.ignoreSelfCreates = (client.room.ignoreSelfCreates || 0) + 1
-		client.proxy.sendData('ROUND_COMMAND', {'Create': [198, [[[-8192 - Math.random() * 8192, -8192 - Math.random() * 8192], 0, false, false, false, [0, 0], 0, '0', 1, false], [true, 1000]], true]})
+		client.proxy.sendData('ROUND_COMMAND', {'Create': [198, [[[-2048 - Math.random() * 2048, -2048 - Math.random() * 2048], 0, false, false, false, [0, 0], 0, '0', 1, false], [true, 1000]], true]})
 	}
 
 	function castMapTimer(client, isHaxe, script) {
@@ -903,7 +901,7 @@ module.exports = function(options) {
 		}
 		if ('Create' in dataJson) {
 			if (playerId === client.uid && client.room.ignoreSelfCreates) {
-				client.room.ignoreSelfCreates--
+				client.room.ignoreSelfCreates--;
 				return true
 			}
 			var pos;
@@ -913,12 +911,12 @@ module.exports = function(options) {
 				pos = dataJson.Create[1][0][0];
 			}
 			if (pos) {
-				if (typeof pos[0] === 'number' && typeof pos[1] === 'number' && (pos[0] <= -2048 || pos[1] <= -2048)) {
-					return true
+				if (typeof pos[0] !== 'number' || typeof pos[1] !== 'number' || pos[0] <= -2048 || pos[1] <= -2048) {
+					dataJson.Create = [0, [[-2048, -2048], 0, true], false];
+					return false
 				}
 			}
-			var isCrash = dataJson.Create[1].length === 1 && Array.isArray(dataJson.Create[1][0]) && Array.isArray(dataJson.Create[1][0][0]);
-			if (isCrash || (client.settings.ignoreInvalidObjects && !(pos && isValidCreate(dataJson.Create)))) {
+			if (!isValidCreate(dataJson.Create)) {
 				if (playerId !== client.uid) {
 					if (client.settings.logObjects)
 						Logger.info('server', `${getPlayerMention(client, playerId)} пытался создать объект Entity ${dataJson.Create[0].toString()}`)
@@ -930,13 +928,12 @@ module.exports = function(options) {
 						})
 					}
 				}
-				return true
+				return client.settings.ignoreInvalidObject
 			} else {
 				for (player of client.round.players)
 					client.round.mapObjects[player] = (client.round.mapObjects[player] || 0) + 1
 			}
-		}
-		if ('Destroy' in dataJson) {
+		} else if ('Destroy' in dataJson) {
 			if (playerId === client.uid) {
 				if (client.room.ignoreSelfDestroys) {
 					client.room.ignoreSelfDestroys--
@@ -956,7 +953,8 @@ module.exports = function(options) {
 					}
 					if (client.round.mapObjects[playerId])
 						client.round.mapObjects[playerId]--
-					return true
+					dataJson.Create = [0, [[-2048, -2048], 0, true], false];
+					return false
 				}
 			}
 		}

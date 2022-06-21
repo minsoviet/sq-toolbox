@@ -24,7 +24,7 @@
         ["noModerators", "Скрывать модерки", false],
         ["noChatRestrictions", "Откл. огр-я чата", false],
         ["ignoreSelfReports", "Игн. жалобы на игрока", false],
-        ["ignoreInvalidObjects", "Игн. невалидн. об-ы", true],
+        ["ignoreInvalidObjects", "Игн. невалидн. об-ы", false],
         ["createBeforeDestroy", "Игн. удал. чуж. об-в", false],
         ["preserveMapObjects", "Игн. удал. об-в карты", false],
         ["ignoreShamanCast", "Игн. каст шамана", false],
