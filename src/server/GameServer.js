@@ -130,6 +130,7 @@ module.exports = function(options) {
 	}
 
 	function detectPlayers(client) {
+		client.room.ignoreSelfCreates = (client.room.ignoreSelfCreates || 0) + 1
 		client.proxy.sendData('ROUND_COMMAND', {'Create': [198, [[[-8192 - Math.random() * 8192, -8192 - Math.random() * 8192], 0, false, false, false, [0, 0], 0, '0', 1, false], [true, 1000]], true]})
 	}
 
@@ -367,8 +368,6 @@ module.exports = function(options) {
 		if (isOldStyle) {
 			if (typeof data[0][0] !== 'number' || typeof data[0][1] !== 'number')
 				return false
-			if (data[0][0] <= -2048 || data[0][1] <= -2048)
-				return false
 			if (typeof data[1] !== 'number')
 				return false
 			if (typeof data[2] !== 'boolean')
@@ -380,8 +379,6 @@ module.exports = function(options) {
 		if (!Array.isArray(data[0][0]))
 			return false
 		if (typeof data[0][0][0] !== 'number' || typeof data[0][0][1] !== 'number')
-			return false
-		if (data[0][0][0] <= -2048 || data[0][0][1] <= -2048)
 			return false
 		if (typeof data[0][1] !== 'number')
 			return false
@@ -909,7 +906,20 @@ module.exports = function(options) {
 				client.room.ignoreSelfCreates--
 				return true
 			}
-			if (client.settings.ignoreInvalidObjects && !isValidCreate(dataJson.Create)) {
+			if (Array.isArray(dataJson.Create[0]) && dataJson.Create[0].length == 2) {
+				if (typeof dataJson.Create[0][0] === 'number' && typeof dataJson.Create[0][1] === 'number') {
+					if (dataJson.Create[0][0] <= -2048 || dataJson.Create[0][1] <= -2048)
+						return true
+					}
+				}
+			} else if (Array.isArray(dataJson.Create[0]) && Array.isArray(dataJson.Create[0][0])) { {
+				if (typeof dataJson.Create[0][0][0] == 'number' && typeof dataJson.Create[0][0][1] == 'number') {
+					if (dataJson.Create[0][0][0] <= -2048 || dataJson.Create[0][0][1] <= -2048)
+						return true
+					}
+				}
+			}
+			if (client.settings.ignoreInvalidObjects && isValidCreate(dataJson.Create) == false) {
 				if (playerId !== client.uid) {
 					if (client.settings.logObjects)
 						Logger.info('server', `${getPlayerMention(client, playerId)} пытался создать объект Entity ${dataJson.Create[0].toString()}`)
