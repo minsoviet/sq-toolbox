@@ -953,8 +953,7 @@ module.exports = function(options) {
 					}
 					if (client.round.mapObjects[playerId])
 						client.round.mapObjects[playerId]--
-					dataJson.Create = [0, [[-2048, -2048], 0, true], false];
-					return false
+					return true
 				}
 			}
 		}

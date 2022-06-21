@@ -4,5 +4,6 @@ function onChangeRound() {
 	Est.gameObjectsNum = -1;
 	Est.gameObjectsDeleted = [];
 	Est.lastHighlightObjectId = -1;
+	Est.gameObjectsFirstSyncId = 0;
 }
 Est.onChangeRound = onChangeRound;

@@ -275,24 +275,28 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 	}
 	if(e.keyCode == Keyboard.NUMPAD_5) {
 		var EntityFactory = Type.resolveClass("game.mainGame.entity.EntityFactory");
-		Est.gameObjectsSaved = [];
+		Est.gameObjectsSaved = [[], []];
         var gameObjects = Sg.map.gameObjects();
         var onlyMoveObjects = [11, 12, 126, 127];
+        var blacklistObjects = [57, 73, 74, 77, 78];
 		var i = 0;
+		var o = 0;
 		while(i < gameObjects.length) {
 			try {
 				var object = gameObjects[i];
 				var entityId = EntityFactory.getId(object);
-				if(onlyMoveObjects.indexOf(entityId) == -1) {
-					Est.gameObjectsSaved.push([0, [entityId, object.serialize(), true]]);
+				var linearVelocityX = 0;
+				var linearVelocityY = 0;
+				try {
+					linearVelocityX = object.linearVelocity.x;
+					linearVelocityY = object.linearVelocity.y;
+				} catch(e:Dynamic) {};
+				if(onlyMoveObjects.indexOf(entityId) == -1 && blacklistObjects.indexOf(entityId) == -1) {
+					Est.gameObjectsSaved[0].push([0, [entityId, object.serialize(), true]]);
+					Est.gameObjectsSaved[1].push(o, object.position.x, object.position.y, object.angle, linearVelocityX, linearVelocityY, object.angularVelocity);
+					o++;
 				} else {
-					var linearVelocityX = 0;
-					var linearVelocityY = 0;
-					try {
-						linearVelocityX = object.linearVelocity.x;
-						linearVelocityY = object.linearVelocity.y;
-					} catch(e:Dynamic) {};
-					Est.gameObjectsSaved.push([1, entityId, [object.id, object.position.x, object.position.y, object.angle, linearVelocityX, linearVelocityY, object.angularVelocity]]);
+					Est.gameObjectsSaved[0].push([1, entityId, [object.id, object.position.x, object.position.y, object.angle, linearVelocityX, linearVelocityY, object.angularVelocity]]);
 				}
 			} catch(e:Dynamic) {};
 			i++;
@@ -304,22 +308,25 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 			var EntityFactory = Type.resolveClass("game.mainGame.entity.EntityFactory");
 			var b2Vec2 = Type.resolveClass("Box2D.Common.Math.b2Vec2");
 			var PacketClient = Type.resolveClass("protocol.PacketClient");
-			var gameObjectsSaved = Est.gameObjectsSaved;
+			var gameObjectsSaved = Est.gameObjectsSaved[0];
+			var gameObjectsSync = Est.gameObjectsSaved[1];
 			var gameObjects = Sg.map.gameObjects();
-			var gameObjectsOldLength = gameObjects.length;
 			var onlyMoveEntities = [11, 12, 126, 127];
 			var onlyMoveObjectIds = {};
 			var i = 0;
-			while(i < gameObjectsOldLength) {
+			while(i < gameObjects.length) {
 				try {
 					var object = gameObjects[i];
 					var entityId = EntityFactory.getId(object);
 					if(onlyMoveEntities.indexOf(entityId) == -1) {
+						Est.sendData(Est.packetId, "{\"Destroy\":[" + object.id + ",true]}");
+					} else {
 						onlyMoveObjectIds[entityId] = i;
 					}
 				} catch(e:Dynamic) {};
 				i++;
 			}
+			Est.gameObjectsFirstSyncId = gameObjects.length;
 			i = 0;
 			while(i < gameObjectsSaved.length) {
 				try {
@@ -340,19 +347,46 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 				} catch(e:Dynamic) {};
 				i++;
 			}
+			var sync = [];
 			i = 0;
-			while(i < gameObjectsOldLength) {
-				try {
-					var object = gameObjects[i];
-					var entityId = EntityFactory.getId(object);
-					if(onlyMoveEntities.indexOf(entityId) == -1) {
-						Est.sendData(Est.packetId, "{\"Destroy\":[" + object.id + ",true]}");
-					}
-				} catch(e:Dynamic) {};
+			while(i < gameObjectsSync.length) {
+				if(i == 0 || (i > 6 && i % 7 == 0)) {
+					var newId = Est.gameObjectsFirstSyncId + gameObjectsSync[i];
+					var object = gameObjects[objectId];
+					object.position = Type.createInstance(b2Vec2, [gameObjectsSync[i - 5], gameObjectsSync[i - 4]]);
+					object.angle = gameObjectsSync[i - 3];
+					sync.push(newId);
+				} else {
+					sync.push(gameObjectsSync[i]);
+				}
 				i++;
 			}
+			Est.sendData(PacketClient.ROUND_SYNC, PacketClient.SYNC_ALL, sync);
 		}
         return;
+	}
+	if(e.keyCode == Keyboard.NUMPAD_7) {
+		if(Reflect.hasField(Est, "gameObjectsSaved") && Reflect.hasField(Est, "gameObjectsFirstSyncId")) {
+			var gameObjects = Sg.map.gameObjects();
+			var b2Vec2 = Type.resolveClass("Box2D.Common.Math.b2Vec2");
+			var PacketClient = Type.resolveClass("protocol.PacketClient");
+			var gameObjectsSync = Est.gameObjectsSaved[1];
+			var sync = [];
+			var i = 0;
+			while(i < gameObjectsSync.length) {
+				if(i == 0 || (i > 6 && i % 7 == 0)) {
+					var newId = Est.gameObjectsFirstSyncId + gameObjectsSync[i];
+					var object = gameObjects[objectId];
+					object.position = Type.createInstance(b2Vec2, [gameObjectsSync[i - 5], gameObjectsSync[i - 4]]);
+					object.angle = gameObjectsSync[i - 3];
+					sync.push(newId);
+				} else {
+					sync.push(gameObjectsSync[i]);
+				}
+				i++;
+			}
+			Est.sendData(PacketClient.ROUND_SYNC, PacketClient.SYNC_ALL, sync);
+		}
 	}
 	var Hs = Hero.self;
 	if(Hs == null) {
