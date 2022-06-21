@@ -906,20 +906,18 @@ module.exports = function(options) {
 				client.room.ignoreSelfCreates--
 				return true
 			}
+			var pos;
 			if (Array.isArray(dataJson.Create[0]) && dataJson.Create[0].length == 2) {
-				if (typeof dataJson.Create[0][0] === 'number' && typeof dataJson.Create[0][1] === 'number') {
-					if (dataJson.Create[0][0] <= -2048 || dataJson.Create[0][1] <= -2048)
-						return true
-					}
-				}
-			} else if (Array.isArray(dataJson.Create[0]) && Array.isArray(dataJson.Create[0][0])) { {
-				if (typeof dataJson.Create[0][0][0] == 'number' && typeof dataJson.Create[0][0][1] == 'number') {
-					if (dataJson.Create[0][0][0] <= -2048 || dataJson.Create[0][0][1] <= -2048)
-						return true
-					}
+				pos = dataJson.Create[0];
+			} else if (Array.isArray(dataJson.Create[0]) && Array.isArray(dataJson.Create[0][0])) {
+				pos = dataJson.Create[0][0];
+			}
+			if (pos) {
+				if (typeof pos[0] === 'number' && typeof pos[1] === 'number' && (pos[0] <= -2048 || pos[1] <= -2048)) {
+					return true
 				}
 			}
-			if (client.settings.ignoreInvalidObjects && isValidCreate(dataJson.Create) == false) {
+			if (client.settings.ignoreInvalidObjects && !(pos && isValidCreate(dataJson.Create))) {
 				if (playerId !== client.uid) {
 					if (client.settings.logObjects)
 						Logger.info('server', `${getPlayerMention(client, playerId)} пытался создать объект Entity ${dataJson.Create[0].toString()}`)
