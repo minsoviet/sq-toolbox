@@ -917,7 +917,8 @@ module.exports = function(options) {
 					return true
 				}
 			}
-			if (client.settings.ignoreInvalidObjects && !(pos && isValidCreate(dataJson.Create))) {
+			var isCrash = dataJson.Create[1].length === 1 && Array.isArray(dataJson.Create[1][0]) && Array.isArray(dataJson.Create[1][0][0]);
+			if (isCrash || (client.settings.ignoreInvalidObjects && !(pos && isValidCreate(dataJson.Create)))) {
 				if (playerId !== client.uid) {
 					if (client.settings.logObjects)
 						Logger.info('server', `${getPlayerMention(client, playerId)} пытался создать объект Entity ${dataJson.Create[0].toString()}`)
