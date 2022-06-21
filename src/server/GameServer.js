@@ -907,10 +907,10 @@ module.exports = function(options) {
 				return true
 			}
 			var pos;
-			if (Array.isArray(dataJson.Create[0]) && dataJson.Create[0].length == 2) {
-				pos = dataJson.Create[0];
-			} else if (Array.isArray(dataJson.Create[0]) && Array.isArray(dataJson.Create[0][0])) {
-				pos = dataJson.Create[0][0];
+			if (Array.isArray(dataJson.Create[1][0]) && dataJson.Create[1][0].length == 2) {
+				pos = dataJson.Create[1][0];
+			} else if (Array.isArray(dataJson.Create[1][0]) && Array.isArray(dataJson.Create[1][0][0])) {
+				pos = dataJson.Create[1][0][0];
 			}
 			if (pos) {
 				if (typeof pos[0] === 'number' && typeof pos[1] === 'number' && (pos[0] <= -2048 || pos[1] <= -2048)) {
