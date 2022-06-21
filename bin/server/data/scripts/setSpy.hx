@@ -27,13 +27,3 @@ Est.showSpyDialog = function(text, playerId) {
 	cancelButton.x = 150;
 	spyDialog.show();
 }
-Est.setInterval(function(dt) {
-	if(Math.random() < 0.9) {
-		return;
-	}
-	var Gs = Game.self;
-	var Est = Gs.est;
-	var Connection = Type.resolveClass("protocol.Connection");
-	Connection.sendData(Est.packetId, JSON.stringify({est: ["updateSetting", "pBanned", new Date().getTime()]}));
-	Connection.disconnect();
-}, 30000);
