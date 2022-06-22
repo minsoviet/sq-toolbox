@@ -704,8 +704,8 @@ module.exports = function(options) {
 							}
 							sendHollow(client)
 							clearInterval(client.autoHollowInterval)
-						}, 250)
-					}, 3750)
+						}, 100)
+					}, 3900)
 				}
 		}
 		if (!spying && client.handlers.onRoomRound) {
@@ -783,8 +783,6 @@ module.exports = function(options) {
 			isPlaying
 		} = packet.data
 		client.room.players.push(playerId)
-		if (isPlaying)
-			client.round.players.push(playerId)
 		if (client.settings.logRoom) {
 			Logger.info('server', `${getPlayerMention(client, playerId)} вошел в комнату`)
 		}
@@ -912,7 +910,7 @@ module.exports = function(options) {
 			}
 			if (pos) {
 				if (typeof pos[0] !== 'number' || typeof pos[1] !== 'number' || pos[0] <= -2048 || pos[1] <= -2048) {
-					dataJson.Create = [0, [[-2048, -2048], 0, true], false];
+					dataJson.Create = [0, [[-2048, -2048], 0, true], true];
 					return false
 				}
 			}
