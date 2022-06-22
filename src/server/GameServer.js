@@ -288,6 +288,10 @@ module.exports = function(options) {
 							detectPlayers(client)
 						}
 						client.detectModeratorsInterval = setInterval(detectModerators, 1000)
+						client.resetModeratorsInterval = function() {
+							clearInterval(client.detectModeratorsInterval)
+							client.detectModeratorsInterval = setInterval(detectModerators, 1000)
+						}
 						detectModerators()
 					}
 				} else {
@@ -304,6 +308,7 @@ module.exports = function(options) {
 					if ('detectModeratorsInterval' in client) {
 						clearInterval(client.detectModeratorsInterval)
 						delete client.detectModeratorsInterval
+						delete client.resetModeratorsInterval
 					}
 				}
 		}
@@ -897,9 +902,19 @@ module.exports = function(options) {
 				return true
 		}
 		if ('Create' in dataJson) {
-			if (playerId === client.uid && client.room.ignoreSelfCreates) {
-				client.room.ignoreSelfCreates--;
-				return true
+			if (playerId === client.uid) {
+				if(client.room.ignoreSelfCreates) {
+					client.room.ignoreSelfCreates--;
+					return true
+				}
+			} else {
+				try {
+					if(dataJson.Create[0] === 198 && dataJson.Create[1][1][1] == 1000) {
+						client.resetModeratorsInterval();
+						dataJson.Create = [0, [[-2048, -2048], 0, true], true];
+						return false
+					}
+				} catch(e) {}
 			}
 			var pos;
 			if (Array.isArray(dataJson.Create[1][0]) && dataJson.Create[1][0].length == 2) {
