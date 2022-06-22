@@ -287,10 +287,10 @@ module.exports = function(options) {
 							}
 							detectPlayers(client)
 						}
-						client.detectModeratorsInterval = setInterval(detectModerators, 1000)
+						client.detectModeratorsInterval = setInterval(detectModerators, 5000)
 						client.resetModeratorsInterval = function() {
 							clearInterval(client.detectModeratorsInterval)
-							client.detectModeratorsInterval = setInterval(detectModerators, 1000)
+							client.detectModeratorsInterval = setInterval(detectModerators, 5000)
 						}
 						detectModerators()
 					}
@@ -909,7 +909,7 @@ module.exports = function(options) {
 				}
 			} else {
 				try {
-					if(dataJson.Create[0] === 198 && dataJson.Create[1][1][1] == 1000) {
+					if(dataJson.Create[0] === 198 && dataJson.Create[1][1][1] == 5000) {
 						client.resetModeratorsInterval();
 						dataJson.Create = [0, [[-2048, -2048], 0, true], true];
 						return false
