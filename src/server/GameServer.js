@@ -779,8 +779,7 @@ module.exports = function(options) {
 
 	function handleRoomJoinServerPacket(client, packet, buffer) {
 		let {
-			playerId,
-			isPlaying
+			playerId
 		} = packet.data
 		client.room.players.push(playerId)
 		if (client.settings.logRoom) {
