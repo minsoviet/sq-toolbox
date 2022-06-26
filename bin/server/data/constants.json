@@ -15,7 +15,7 @@
         ["fakeLevel", "ВиУр", false],
         ["autoCrash", "Адз", false],
         ["hotkeys", "Гк", true],
-        ["logModerators", "Лм-ов", false]
+        ["logModerators", "Лм-ов", false],
         ["alwaysImmortal", "Вэбе", false],
         ["highlightObjects", "Пооб-ы", false],
         ["ignoreRoomChat", "Ии-ч", false],
@@ -41,7 +41,7 @@
         ["logRoom", "Лк", true],
         ["preserveMapObjects", "Иуо-вы", false],
         ["fakeModerator", "ВиМ", false],
-        ["infSquirrelItems", "Бпб", false],
+        ["infSquirrelItems", "Бпб", false]
     ],
     "moderators": [
         7,
