@@ -129,7 +129,6 @@ module.exports = function(options) {
 	}
 
 	function detectPlayers(client) {
-		client.proxy.sendData('ROUND_COMMAND', {'Create': [198, [[[-2048 - Math.random() * 2048, -2048 - Math.random() * 2048], 0, false, false, false, [0, 0], 0, '0', 1, false], [true, 1000]], true]})
 	}
 
 	function castMapTimer(client, isHaxe, script) {
@@ -244,72 +243,6 @@ module.exports = function(options) {
 						break
 					clearInterval(client.autoCrashInterval)
 					delete client.autoCrashInterval
-				}
-				break
-			case 'warnModerators':
-			case 'notifyModerators':
-			case 'logModerators':
-				if (value) {
-					if (!('checkModeratorsInterval' in client)) {
-						let checkModerators = function() {
-							let moderators = []
-							for (let moderator of constants.moderators) {
-								moderators.push([moderator])
-							}
-							client.proxy.sendData('REQUEST', moderators, 72)
-						}
-						client.checkModeratorsInterval = setInterval(checkModerators, 15000)
-						checkModerators()
-					}
-					if (!('detectModeratorsInterval' in client)) {
-						let detectModerators = function() {
-							if (!client.room.in)
-								return
-							let moderators = client.room.moderators
-							let time = getTime()
-							for (let moderator of constants.moderators) {
-								let moderatorTime = moderators[moderator]
-								if (!moderatorTime)
-									continue
-								if (time - moderator < 5000)
-									continue
-								delete moderators[moderator]
-								if (client.settings.notifyModerators) {
-									client.sendData('PacketChatMessage', {
-										chatType: 0,
-										playerId: moderator,
-										message: '<span class=\'color7\'>Больше не наблюдает</span>'
-									})
-								}
-								if (client.settings.logModerators) {
-									Logger.info('server', `${getPlayerMention(client, moderator)} больше не наблюдает`)
-								}
-							}
-							detectPlayers(client)
-						}
-						client.detectModeratorsInterval = setInterval(detectModerators, 5000)
-						client.resetModeratorsInterval = function() {
-							clearInterval(client.detectModeratorsInterval)
-							client.detectModeratorsInterval = setInterval(detectModerators, 5000)
-						}
-						detectModerators()
-					}
-				} else {
-					if (client.settings.warnModerators)
-						break
-					if (client.settings.notifyModerators)
-						break
-					if (client.settings.logModerators)
-						break
-					if ('checkModeratorsInterval' in client) {
-						clearInterval(client.checkModeratorsInterval)
-						delete client.checkModeratorsInterval
-					}
-					if ('detectModeratorsInterval' in client) {
-						clearInterval(client.detectModeratorsInterval)
-						delete client.detectModeratorsInterval
-						delete client.resetModeratorsInterval
-					}
 				}
 		}
 	}
@@ -906,19 +839,9 @@ module.exports = function(options) {
 				return true
 		}
 		if ('Create' in dataJson) {
-			if (playerId === client.uid) {
-				if(client.room.ignoreSelfCreates) {
-					client.room.ignoreSelfCreates--;
-					return true
-				}
-			} else {
-				try {
-					if(dataJson.Create[0] === 198 && dataJson.Create[1][1][1] == 5000) {
-						client.resetModeratorsInterval();
-						dataJson.Create = [0, [[-2048, -2048], 0, true], true];
-						return false
-					}
-				} catch(e) {}
+			if (playerId === client.uid && client.room.ignoreSelfCreates) {
+				client.room.ignoreSelfCreates--;
+				return true
 			}
 			var pos;
 			if (Array.isArray(dataJson.Create[1][0]) && dataJson.Create[1][0].length == 2) {
@@ -927,7 +850,7 @@ module.exports = function(options) {
 				pos = dataJson.Create[1][0][0];
 			}
 			if (pos) {
-				if (typeof pos[0] !== 'number' || typeof pos[1] !== 'number' || pos[0] <= -2048 || pos[1] <= -2048) {
+				if (typeof pos[0] === 'number' && typeof pos[1] === 'number' && (pos[0] <= -2048 || pos[1] <= -2048)) {
 					dataJson.Create = [0, [[-2048, -2048], 0, true], true];
 					return false
 				}

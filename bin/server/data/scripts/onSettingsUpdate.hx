@@ -130,6 +130,10 @@ function onSettingsUpdate() {
 					return;
 				}
 				if(Game.stage.focus == inputBoxGame) {
+					if(!Chat.visible) {
+						Chat.show();
+						Game.stage.focus = inputBoxGame;
+					}
 					if(!Hs.isStoped) {
 						Hs.isStoped = true;
 					}
