@@ -17,6 +17,16 @@ function onSettingsUpdate() {
 	if(isChanged("fakeModerator", null)) {
 		Gs.moderator = playerInfo.moderator || settings.fakeModerator;
 	}
+	if(isChanged("fakeEditorAccess", null)) {
+		if(settings.fakeEditorAccess) {
+			Est.oldEditorAccess = Game.editor_access;
+			Game.editor_access = 1;
+		} else {
+			if(Reflect.hasField(Est, "oldEditorAccess")) {
+				Game.editor_access = Est.oldEditorAccess;
+			}
+		}
+	}
 	if(isChanged("noChatRestrictions", null)) {
 		var gameSprite = Game.gameSprite.getChildAt(0);
 		var Footers = gameSprite.getChildAt(1);

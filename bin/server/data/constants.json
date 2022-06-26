@@ -19,6 +19,7 @@
         ["noCastClear", "Не сбрасывать каст", false],
         ["highlightObjects", "Подсвечивать объекты", false],
         ["fakeModerator", "Виз. модератор", false],
+        ["fakeEditorAccess", "Полный редактор карт", false],
         ["fakeVIP", "Виз. VIP", false],
         ["fakeLevel", "Виз. уровень", false],
         ["noModerators", "Скрывать модерки", false],
