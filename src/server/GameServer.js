@@ -378,8 +378,6 @@ module.exports = function(options) {
 		if (packet.data.innerId === undefined)
 			return false
 		client.uid = packet.data.innerId
-		if (options.local.saveLoginData)
-			fs.writeFileSync(options.local.cacheDir + '/loginData' + client.uid + '.txt', client.storage.loginData, { encoding: 'utf8', flag: 'w+'})
 		return false
 	}
 
@@ -1329,28 +1327,34 @@ module.exports = function(options) {
 
 	function handleDebugDumpPlayerCommand(client, chatType, args) {
 		if (client.storage.injected)
-			return runExternalScript(client, 'window.prompt("Скопируйте данные игрока.", "' + Buffer.from(JSON.stringify(client.player)).toString('base64') + '");')
-		showMessage(client, 'Дамп данных игрока:\n' +
+			return runExternalScript(client, 'window.prompt("Скопируйте профиль.", "' + Buffer.from(JSON.stringify(client.player)).toString('base64') + '");')
+		showMessage(client, 'Дамп профиля:\n' +
 			'\n' +
 			Buffer.from(JSON.stringify(client.player)).toString('base64'))
 	}
 
 	function handleDebugDumpLoginCommand(client, chatType, args) {
 		if (client.storage.injected)
-			return runExternalScript(client, 'window.prompt("Скопируйте данные входа.\\n\\nВНИМАНИЕ!!! НИКОМУ НЕ ПЕРЕДАВАЙТЕ ЭТИ ДАННЫЕ", "' + client.storage.loginData + '");')
+			return runExternalScript(client, 'window.prompt("Скопируйте пакет входа.\\n\\nВНИМАНИЕ!!! НИКОМУ НЕ ПЕРЕДАВАЙТЕ ЭТИ ДАННЫЕ", "' + client.storage.loginData + '");')
 		showMessage(client, 'ВНИМАНИЕ!!! НИКОМУ НЕ ПЕРЕДАВАЙТЕ ЭТИ ДАННЫЕ!!!\n' +
 			'\n' +
-			'Дамп данных входа:\n' +
+			'Дамп пакета входа:\n' +
 			'\n' +
 			client.storage.loginData)
 	}
 
+	function handleDebugDumpTokensCommand(client, chatType, args) {
+		if (client.storage.injected)
+			return runExternalScript(client, 'window.prompt("Скопируйте токены.\\n\\nВНИМАНИЕ!!! НИКОМУ НЕ ПЕРЕДАВАЙТЕ ЭТИ ДАННЫЕ", document.getElementById("flash-app").childNodes[1].value);')
+		showMessage(client, 'Невозможно получить токены')
+	}
+
 	function handleDebugDumpStorageCommand(client, chatType, args) {
 		if (client.storage.injected)
-			return runExternalScript(client, 'window.prompt("Скопируйте данные сессии.\\n\\nВНИМАНИЕ!!! НИКОМУ НЕ ПЕРЕДАВАЙТЕ ЭТИ ДАННЫЕ", "' + JSON.stringify(client.storage).replace(/\"/g, "'") + '");')
+			return runExternalScript(client, 'window.prompt("Скопируйте данные программы.\\n\\nВНИМАНИЕ!!! НИКОМУ НЕ ПЕРЕДАВАЙТЕ ЭТИ ДАННЫЕ", "' + JSON.stringify(client.storage).replace(/\"/g, "'") + '");')
 		showMessage(client, 'ВНИМАНИЕ!!! НИКОМУ НЕ ПЕРЕДАВАЙТЕ ЭТИ ДАННЫЕ!!!\n' +
 			'\n' +
-			'Дамп данных сессии:\n' +
+			'Дамп данных программы:\n' +
 			'\n' +
 			JSON.stringify(client.storage).replace(/\"/g, "'"))
 	}
@@ -1362,15 +1366,19 @@ module.exports = function(options) {
 			case undefined:
 				showMessage(client, 'Подкоманды:\n' +
 					'\n' +
-					'.debug dump player — данные профиля\n' +
-					'.debug dump login — данные входа' +
-					'.debug dump storage — данные хранилища')
+					'.debug dump player — дамп профиля\n' +
+					'.debug dump login — дамп пакета входа\n' +
+					'.debug dump tokens — дамп токенов\n' +
+					'.debug dump storage — дамп данных программы')
 				break
 			case 'player':
 				handleDebugDumpPlayerCommand(client, chatType, args)
 				break
 			case 'login':
 				handleDebugDumpLoginCommand(client, chatType, args)
+				break
+			case 'tokens':
+				handleDebugDumpTokensCommand(client, chatType, args)
 				break
 			case 'storage':
 				handleDebugDumpStorageCommand(client, chatType, args)
