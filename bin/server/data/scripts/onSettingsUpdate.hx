@@ -145,13 +145,13 @@ function onSettingsUpdate() {
 							Hs.isStoped = true;
 						}
 					} else {
-						if(Hs.isStoped) {
+						while(Hs.isStoped) {
 							Hs.isStoped = false;
 						}
 					}
 					return;
 				}
-				if(Hs.isStoped) {
+				while(Hs.isStoped) {
 					Hs.isStoped = false;
 				}
 			}, 100);
