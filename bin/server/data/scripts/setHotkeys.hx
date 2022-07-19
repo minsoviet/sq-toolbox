@@ -426,7 +426,6 @@ Game.stage.addEventListener(KeyboardEvent.KEY_DOWN, function(e) {
 			var Point = Type.resolveClass("flash.geom.Point");
 			var b2Vec2 = Type.resolveClass("Box2D.Common.Math.b2Vec2");
 			var point = Sg.squirrels.globalToLocal(Type.createInstance(Point, [Game.stage.mouseX, Game.stage.mouseY]));
-            Hs.sendMove = false;
             Hs.teleportTo(Type.createInstance(b2Vec2, [point.x / Game.PIXELS_TO_METRE, point.y / Game.PIXELS_TO_METRE]));
             return;
 		}
