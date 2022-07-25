@@ -121,7 +121,7 @@ module.exports = function(options) {
 
 	function kickMap(client) {
 		client.room.ignoreSelfCreates = (client.room.ignoreSelfCreates || 0) + 1
-		client.proxy.sendData('ROUND_COMMAND', {'Create': [1, [[[]]], true]})
+		client.proxy.sendData('ROUND_COMMAND', {'Create': [59, [[[]]], true]})
 	}
 
 	function crashMap(client) {
