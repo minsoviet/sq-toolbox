@@ -865,7 +865,7 @@ module.exports = function(options) {
 						})
 					}
 				}
-				return client.settings.ignoreInvalidObject
+				return client.settings.ignoreInvalidObjects
 			} else {
 				for (player of client.round.players)
 					client.round.mapObjects[player] = (client.round.mapObjects[player] || 0) + 1
