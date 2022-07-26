@@ -121,7 +121,7 @@ module.exports = function(options) {
 
 	function kickMap(client) {
 		client.room.ignoreSelfCreates = (client.room.ignoreSelfCreates || 0) + 1
-		client.proxy.sendData('ROUND_COMMAND', {'Create': [283, [[0, 0], 0], true]})
+		client.proxy.sendData('ROUND_COMMAND', {'Create': [0, [[[]]], true]})
 	}
 
 	function crashMap(client) {
@@ -837,6 +837,7 @@ module.exports = function(options) {
 				return true
 		}
 		if ('Create' in dataJson) {
+			console.log(dataJson.Create)
 			if (playerId === client.uid && client.room.ignoreSelfCreates) {
 				client.room.ignoreSelfCreates--;
 				return true
@@ -848,7 +849,7 @@ module.exports = function(options) {
 				pos = dataJson.Create[1][0][0];
 			}
 			if (pos) {
-				if (typeof pos[0] === 'number' && typeof pos[1] === 'number' && (pos[0] >= 4096 || pos[1] >= 4096)) {
+				if (typeof pos[0] === 'number' && typeof pos[1] === 'number' && (pos[0] <= -2048 || pos[1] <= -2048)) {
 					dataJson.Create = [0, [[-2048, -2048], 0, true], true];
 					return false
 				}

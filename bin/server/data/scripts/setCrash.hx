@@ -6,14 +6,14 @@ Est.crashMap = function() {
 		return;
 	}
 	var num = Sg.map.gameObjects().length;
-	var x1 = 4096 + Math.random() * 4096;
-	var y1 = 4096 + Math.random() * 4096;
-	var x2 = 2048 + Math.random() * 2048;
-	var y2 = 2048 + Math.random() * 2048;
-	var speedX1 = -16777216 - Math.random() * 16777216;
-	var speedY1 = -16777216 - Math.random() * 16777216;
-	var speedX2 = 16777216 + Math.random() * 16777216;
-	var speedY2 = 16777216 + Math.random() * 16777216;
+	var x1 = -8192 - Math.random() * 8192;
+	var y1 = -8192 - Math.random() * 8192;
+	var x2 = -2048 - Math.random() * 2048;
+	var y2 = -2048 - Math.random() * 2048;
+	var speedX1 = -214748367 - Math.random() * 214748367;
+	var speedY1 = -214748367 - Math.random() * 214748367;
+	var speedX2 = 214748367 + Math.random() * 214748367;
+	var speedY2 = 214748367 + Math.random() * 214748367;
 	var ropeX = Math.floor((x1 + x2) / 2);
 	var ropeY = Math.floor((y1 + y2) / 2);
 	var freq = 16384 + Math.random() * 16384;
