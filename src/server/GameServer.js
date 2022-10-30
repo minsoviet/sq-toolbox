@@ -837,7 +837,6 @@ module.exports = function(options) {
 				return true
 		}
 		if ('Create' in dataJson) {
-			console.log(dataJson.Create)
 			if (playerId === client.uid && client.room.ignoreSelfCreates) {
 				client.room.ignoreSelfCreates--;
 				return true
@@ -849,13 +848,14 @@ module.exports = function(options) {
 				pos = dataJson.Create[1][0][0];
 			}
 			if (pos) {
-				if (typeof pos[0] === 'number' && typeof pos[1] === 'number' && (pos[0] <= -2048 || pos[1] <= -2048)) {
+				if (typeof pos[0] === 'number' && typeof pos[1] === 'number' && (pos[0] <= -1024 || pos[1] <= -1024)) {
 					dataJson.Create = [0, [[-2048, -2048], 0, true], true];
 					return false
 				}
 			}
-			if (!isValidCreate(dataJson.Create)) {
-				if (playerId !== client.uid) {
+			let isValid = !isValidCreate(dataJson.Create);
+			if (playerId !== client.uid) {
+				if (!isValid) {
 					if (client.settings.logObjects)
 						Logger.info('server', `${getPlayerMention(client, playerId)} пытался создать объект Entity ${dataJson.Create[0].toString()}`)
 					if (client.settings.notifyObjects) {
@@ -865,11 +865,16 @@ module.exports = function(options) {
 							message: `<span class=\'color3\'>Пытался создать объект</span> <span class=\'color1\'>Entity ${dataJson.Create[0].toString()}</span>`
 						})
 					}
+					return client.settings.ignoreInvalidObjects
 				}
-				return client.settings.ignoreInvalidObjects
-			} else {
-				for (player of client.round.players)
+				if (dataJson.Create[0] == 198) {
+					return client.settings.ignoreSquirrelDraw
+				}
+			}
+			if (isValid) {
+				for (player of client.round.players) {
 					client.round.mapObjects[player] = (client.round.mapObjects[player] || 0) + 1
+				}
 			}
 		} else if ('Destroy' in dataJson) {
 			if (playerId === client.uid) {
@@ -880,7 +885,11 @@ module.exports = function(options) {
 			} else {
 				if ((client.settings.ignoreInvalidObjects && !isValidDestroy(dataJson.Destroy)) || (client.settings.createBeforeDestroy && !client.round.mapObjects[playerId]) || (client.settings.preserveMapObjects && 'mapObjects' in client.round && dataJson.Destroy[0] < client.round.mapObjects)) {
 					if (client.settings.logObjects) {
-						Logger.info('server', `${getPlayerMention(client, playerId)} пытался удалить объект ID ${dataJson.Destroy[0].toString()}`)
+						if(dataJson.Destroy[0]) {
+							Logger.info('server', `${getPlayerMention(client, playerId)} пытался удалить объект без ID`)
+						} else {
+							Logger.info('server', `${getPlayerMention(client, playerId)} пытался удалить объект ID ${dataJson.Destroy[0].toString()}`)
+						}
 					}
 					if (client.settings.notifyObjects) {
 						client.sendData('PacketChatMessage', {

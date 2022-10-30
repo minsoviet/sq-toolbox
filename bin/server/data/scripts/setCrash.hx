@@ -6,10 +6,10 @@ Est.crashMap = function() {
 		return;
 	}
 	var num = Sg.map.gameObjects().length;
-	var x1 = -8192 - Math.random() * 8192;
-	var y1 = -8192 - Math.random() * 8192;
-	var x2 = -2048 - Math.random() * 2048;
-	var y2 = -2048 - Math.random() * 2048;
+	var x1 = -2048 - Math.random() * 2048;
+	var y1 = -2048 - Math.random() * 2048;
+	var x2 = -1024 - Math.random() * 1024;
+	var y2 = -1024 - Math.random() * 1024;
 	var speedX1 = -214748367 - Math.random() * 214748367;
 	var speedY1 = -214748367 - Math.random() * 214748367;
 	var speedX2 = 214748367 + Math.random() * 214748367;
