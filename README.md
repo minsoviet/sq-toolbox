@@ -1,4 +1,4 @@
-# <img src="https://minsoviet.github.io/media/icons/nut/icon.svg" height="64"> Squirrels Toolbox
+# <img src="https://isoviet.github.io/media/icons/nut/icon.svg" height="64"> Squirrels Toolbox
 
 --------------
 
