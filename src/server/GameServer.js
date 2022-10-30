@@ -849,13 +849,11 @@ module.exports = function(options) {
 			}
 			if (pos) {
 				if (typeof pos[0] === 'number' && typeof pos[1] === 'number' && (pos[0] <= -1024 || pos[1] <= -1024)) {
-					dataJson.Create = [0, [[-2048, -2048], 0, true], true];
-					return false
+					return true
 				}
 			}
-			let isValid = !isValidCreate(dataJson.Create);
-			if (playerId !== client.uid) {
-				if (!isValid) {
+			if (!isValidCreate(dataJson.Create)) {
+				if (playerId !== client.uid) {
 					if (client.settings.logObjects)
 						Logger.info('server', `${getPlayerMention(client, playerId)} пытался создать объект Entity ${dataJson.Create[0].toString()}`)
 					if (client.settings.notifyObjects) {
@@ -865,15 +863,14 @@ module.exports = function(options) {
 							message: `<span class=\'color3\'>Пытался создать объект</span> <span class=\'color1\'>Entity ${dataJson.Create[0].toString()}</span>`
 						})
 					}
-					return client.settings.ignoreInvalidObjects
+				}
+				return client.settings.ignoreInvalidObjects
+			} else {
+				for (player of client.round.players) {
+					client.round.mapObjects[player] = (client.round.mapObjects[player] || 0) + 1
 				}
 				if (dataJson.Create[0] == 198) {
 					return client.settings.ignoreSquirrelDraw
-				}
-			}
-			if (isValid) {
-				for (player of client.round.players) {
-					client.round.mapObjects[player] = (client.round.mapObjects[player] || 0) + 1
 				}
 			}
 		} else if ('Destroy' in dataJson) {
