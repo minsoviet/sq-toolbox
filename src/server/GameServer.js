@@ -120,12 +120,15 @@ module.exports = function(options) {
 	}
 
 	function kickMap(client) {
-		client.room.ignoreSelfCreates = (client.room.ignoreSelfCreates || 0) + 1
 		client.proxy.sendData('ROUND_COMMAND', {'Create': [0, [[[]]], true]})
 	}
 
 	function crashMap(client) {
 		runScript(client, true, 'Est.crashMap();');
+	}
+
+	function crashMap2(client) {
+		runScript(client, true, 'Est.crashMap2();');
 	}
 
 	function detectPlayers(client) {
@@ -236,13 +239,29 @@ module.exports = function(options) {
 							return
 						crashMap(client)
 					}
-					client.autoCrashInterval = setInterval(autoCrash, 1000) // 250 fast planets
+					client.autoCrashInterval = setInterval(autoCrash, 50)
 					crashMap(client)
 				} else {
 					if (!('autoCrashInterval' in client))
 						break
 					clearInterval(client.autoCrashInterval)
 					delete client.autoCrashInterval
+				}
+				break
+			case 'autoCrash2':
+				if (value) {
+					let autoCrash2 = function() {
+						if (!client.room.in)
+							return
+						crashMap2(client)
+					}
+					client.autoCrash2Interval = setInterval(autoCrash2, 50)
+					crashMap2(client)
+				} else {
+					if (!('autoCrash2Interval' in client))
+						break
+					clearInterval(client.autoCrash2Interval)
+					delete client.autoCrash2Interval
 				}
 		}
 	}
@@ -837,10 +856,6 @@ module.exports = function(options) {
 				return true
 		}
 		if ('Create' in dataJson) {
-			if (playerId === client.uid && client.room.ignoreSelfCreates) {
-				client.room.ignoreSelfCreates--;
-				return true
-			}
 			var pos;
 			if (Array.isArray(dataJson.Create[1][0]) && dataJson.Create[1][0].length == 2) {
 				pos = dataJson.Create[1][0];
@@ -848,7 +863,11 @@ module.exports = function(options) {
 				pos = dataJson.Create[1][0][0];
 			}
 			if (pos) {
-				if (typeof pos[0] === 'number' && typeof pos[1] === 'number' && (pos[0] <= -1024 || pos[1] <= -1024)) {
+				if (typeof pos[0] === 'number' && typeof pos[1] === 'number') {
+					if (pos[0].toString().endsWith('.452') && pos[1].toString().endsWith('.789')) {
+						return true
+					}
+				} else {
 					return true
 				}
 			}
@@ -883,17 +902,25 @@ module.exports = function(options) {
 				if ((client.settings.ignoreInvalidObjects && !isValidDestroy(dataJson.Destroy)) || (client.settings.createBeforeDestroy && !client.round.mapObjects[playerId]) || (client.settings.preserveMapObjects && 'mapObjects' in client.round && dataJson.Destroy[0] < client.round.mapObjects)) {
 					if (client.settings.logObjects) {
 						if(dataJson.Destroy[0]) {
-							Logger.info('server', `${getPlayerMention(client, playerId)} пытался удалить объект без ID`)
-						} else {
 							Logger.info('server', `${getPlayerMention(client, playerId)} пытался удалить объект ID ${dataJson.Destroy[0].toString()}`)
+						} else {
+							Logger.info('server', `${getPlayerMention(client, playerId)} пытался удалить объект без ID`)
 						}
 					}
 					if (client.settings.notifyObjects) {
-						client.sendData('PacketChatMessage', {
-							chatType: 0,
-							playerId: playerId,
-							message: `<span class=\'color3\'>Пытался удалить объект</span> <span class=\'color6\'>ID ${dataJson.Destroy[0].toString()}</span>`
-						})
+						if(dataJson.Destroy[0]) {
+							client.sendData('PacketChatMessage', {
+								chatType: 0,
+								playerId: playerId,
+								message: `<span class=\'color3\'>Пытался удалить объект</span> <span class=\'color6\'>ID ${dataJson.Destroy[0].toString()}</span>`
+							})
+						} else {
+							client.sendData('PacketChatMessage', {
+								chatType: 0,
+								playerId: playerId,
+								message: `<span class=\'color3\'>Пытался удалить объект</span> <span class=\'color6\'>без ID</span>`
+							})
+						}
 					}
 					if (client.round.mapObjects[playerId])
 						client.round.mapObjects[playerId]--
@@ -1290,6 +1317,12 @@ module.exports = function(options) {
 		crashMap(client)
 	}
 
+	function handleHackCrash2Command(client, chatType, args) {
+		if (!client.room.in)
+			return showMessage(client, 'Вы не на локации')
+		crashMap2(client)
+	}
+
 	function handleHackScriptCommand(client, chatType, args) {
 		let file = options.local.scriptsDir + '/' + args.shift()
 		if (!client.room.in)
@@ -1313,6 +1346,7 @@ module.exports = function(options) {
 					'.hack skill — баг отмены способности\n' +
 					'.hack kick — кикнуть игроков с карты\n' +
 					'.hack crash — вызвать зависание игры\n' +
+					'.hack crash2 — вызвать зависание игры (2)\n' +
 					'.hack script [имя] — выполнить скрипт всем')
 				break
 			case 'olympic':
