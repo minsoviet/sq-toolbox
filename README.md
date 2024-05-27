@@ -1,4 +1,4 @@
-# <img src="https://isoviet.github.io/media/icons/nut/icon.svg" height="64"> Squirrels Toolbox
+# <img src="https://soviet.worlddev.ru/_assets/icons/nut.svg" height="64"> Squirrels Toolbox
 
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/isoviet/sq-toolbox.svg)](http://isitmaintained.com/project/isoviet/sq-toolbox "Average time to resolve an issue") [![Percentage of issues still open](http://isitmaintained.com/badge/open/isoviet/sq-toolbox.svg)](http://isitmaintained.com/project/isoviet/sq-toolbox "Percentage of issues still open")
 
